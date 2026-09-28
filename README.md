@@ -105,7 +105,11 @@ uv run needle-tr benchmark --target ollama --ollama-model needle-tr
 
 #### 5. Release & Publishing
 ```bash
-# Bump patch version, commit, tag, and push to GitHub (triggers PyPI publish workflow)
+# All-in-one release command: bumps version, tags git, cleans dist, builds & publishes to PyPI
+./release.sh          # Patch bump (e.g., 0.1.5 -> 0.1.6)
+./release.sh minor    # Minor bump (e.g., 0.1.5 -> 0.2.0)
+
+# Or via Python CLI:
 uv run needle-tr release patch --push
 ```
 
@@ -270,7 +274,11 @@ uv run needle-tr benchmark --target ollama --ollama-model needle-tr
 
 #### 5. Sürüm Yayınlama (`Release & Publish`)
 ```bash
-# Patch sürümünü artır, commit et, git tag oluştur ve GitHub'a push et:
+# Tek komutla sürüm artırma, git etiketleme, paket derleme ve PyPI yayını:
+./release.sh          # Patch artırma (örn: 0.1.5 -> 0.1.6)
+./release.sh minor    # Minor artırma (örn: 0.1.5 -> 0.2.0)
+
+# Veya Python CLI üzerinden:
 uv run needle-tr release patch --push
 ```
 

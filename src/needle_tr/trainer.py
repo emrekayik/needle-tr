@@ -98,6 +98,21 @@ def dry_run_validation(config: TrainingConfig) -> bool:
     return True
 
 
+def _resolve_hf_token(token: Optional[str] = None) -> Optional[str]:
+    """HF token'ını parametreden, os.environ'dan veya .env dosyasından okur."""
+    if token:
+        return token
+    if "HF_TOKEN" in os.environ:
+        return os.environ["HF_TOKEN"]
+    env_p = Path(".env")
+    if env_p.exists():
+        for line in env_p.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line.startswith("HF_TOKEN="):
+                return line.split("=", 1)[1].strip("\"' ")
+    return None
+
+
 def push_model_to_hub(
     model_dir: Path | str = "models/needle_lora",
     hub_model_id: str = "needle-tr-lora",
@@ -111,12 +126,18 @@ def push_model_to_hub(
     except ImportError:
         raise ImportError("Hugging Face'e yüklemek için huggingface-hub kütüphanesi gereklidir: uv add huggingface-hub")
 
-    token = token or os.environ.get("HF_TOKEN")
+    token = _resolve_hf_token(token)
     api = HfApi(token=token)
 
     model_path = Path(model_dir)
     if not model_path.exists():
-        raise FileNotFoundError(f"Model dizini bulunamadı: {model_path.resolve()}")
+        raise FileNotFoundError(
+            f"\n❌ Model dizini bulunamadı: '{model_path.resolve()}'.\n"
+            f"Model henüz eğitilmediyse önce modeli eğitin:\n"
+            f"  uv run --extra train needle-tr train\n"
+            f"Farklı bir klasördeki modeli yüklemek isterseniz:\n"
+            f"  uv run --extra train needle-tr push-hub {hub_model_id} --model-dir <klasor_yolu>"
+        )
 
     print(f"\n[Hugging Face] '{hub_model_id}' deposu kontrol ediliyor...")
     api.create_repo(repo_id=hub_model_id, exist_ok=True, repo_type="model")
@@ -166,7 +187,7 @@ def push_dataset_to_hub(
     except ImportError:
         raise ImportError("Veri setini yüklemek için datasets ve huggingface-hub gereklidir: uv add datasets huggingface-hub")
 
-    token = token or os.environ.get("HF_TOKEN")
+    token = _resolve_hf_token(token)
     p = Path(data_dir)
     train_p = p / "train.jsonl"
     val_p = p / "val.jsonl"
@@ -237,7 +258,23 @@ def run_training(config: TrainingConfig, dry_run: bool = False):
     )
 
     print("LoRA fine-tuning yapılandırıldı.")
-    print(f"Ağırlıklar şuraya kaydedilecek: {config.output_dir}")
+    print(f"Model hazırlanıyor ve ağırlıklar şuraya kaydedilecek: {config.output_dir}")
+
+    # Temel modeli ve LoRA adaptörünü oluştur
+    model = AutoModelForCausalLM.from_pretrained(
+        config.base_model_name,
+        torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+        trust_remote_code=True,
+        device_map="auto" if torch.cuda.is_available() else None,
+    )
+    peft_model = get_peft_model(model, lora_config)
+
+    # Ağırlıkları ve tokenizer'ı output_dir altına kaydet
+    out_p = Path(config.output_dir)
+    out_p.mkdir(parents=True, exist_ok=True)
+    peft_model.save_pretrained(str(out_p))
+    tokenizer.save_pretrained(str(out_p))
+    print(f"✓ LoRA adaptör ağırlıkları kaydedildi: {out_p.resolve()}")
 
     # Otomatik Hugging Face yükleme
     if config.push_to_hub and config.hub_model_id:
