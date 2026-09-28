@@ -133,6 +133,7 @@ def cmd_release(args):
     run_release(
         bump_type=args.bump,
         push=args.push,
+        publish=getattr(args, "publish", False),
         custom_message=args.message,
     )
 
@@ -214,6 +215,11 @@ def main():
         "--message",
         default=None,
         help="Özel commit mesajı (varsayılan: 'chore: release vX.Y.Z')",
+    )
+    p_release.add_argument(
+        "--publish",
+        action="store_true",
+        help="Sürüm yükseltildikten sonra paketi derle ve .env dosyasındaki token ile PyPI'ye yükle",
     )
     p_release.set_defaults(func=cmd_release)
 

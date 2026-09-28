@@ -2,9 +2,9 @@
 # ==============================================================================
 # Needle-TR Otomatik Sürüm Artırma, Derleme, Git Push ve PyPI Yayınlama Scripti
 # Kullanım:
-#   ./release.sh           (Varsayılan: patch artırır, örn: 0.1.5 -> 0.1.6)
-#   ./release.sh minor     (Minor artırır, örn: 0.1.5 -> 0.2.0)
-#   ./release.sh major     (Major artırır, örn: 0.1.5 -> 1.0.0)
+#   ./release.sh           (Varsayılan: patch artırır, örn: 0.1.8 -> 0.1.9)
+#   ./release.sh minor     (Minor artırır, örn: 0.1.8 -> 0.2.0)
+#   ./release.sh major     (Major artırır, örn: 0.1.8 -> 1.0.0)
 #   ./release.sh 0.3.0     (Belirtilen sürüme yükseltir)
 # ==============================================================================
 set -e
@@ -16,9 +16,29 @@ echo "=============================================================="
 echo "🚀 NEEDLE-TR OTOMATİK SÜRÜM YAYINLAMA: [$BUMP_TYPE]"
 echo "=============================================================="
 
-# 1. .env dosyasından varsa ortam değişkenlerini yükle
+# 1. .env dosyasından ortam değişkenlerini satır satır güvenle yükle
 if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs) 2>/dev/null || true
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Yorum ve boş satırları atla
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${line// }" ]] && continue
+        if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            val="${BASH_REMATCH[2]}"
+            # Tırnak işaretlerini temizle
+            val="${val%\"}"
+            val="${val#\"}"
+            val="${val%\'}"
+            val="${val#\'}"
+            export "$key"="$val"
+        fi
+    done < .env
+fi
+
+# PyPI token'ını olası tüm isimlerden kontrol et
+PUBLISH_TOKEN="${UV_PUBLISH_TOKEN:-${PYPI_API_TOKEN:-${PYPI_TOKEN:-${PYPI_API_TOKKEN}}}}"
+if [ -n "$PUBLISH_TOKEN" ]; then
+    export UV_PUBLISH_TOKEN="$PUBLISH_TOKEN"
 fi
 
 # 2. Çalışma dizinindeki bekleyen değişiklikleri kontrol et ve commit'e hazırla
@@ -47,13 +67,15 @@ uv build
 echo ""
 echo "📤 [5/5] PyPI'ye yayınlanıyor..."
 if [ -n "$UV_PUBLISH_TOKEN" ]; then
+    echo "✓ PyPI token .env dosyasından başarıyla yüklendi."
     uv publish --token "$UV_PUBLISH_TOKEN"
 else
-    echo "⚠️  UV_PUBLISH_TOKEN ortam değişkeni bulunamadı."
+    echo "⚠️  .env dosyasında veya ortam değişkenlerinde PyPI token bulunamadı."
     read -p "🔑 Lütfen PyPI API token'ınızı girin (pypi-...): " USER_TOKEN
     if [ -n "$USER_TOKEN" ]; then
         uv publish --token "$USER_TOKEN"
         if [ ! -f ".env" ] || ! grep -q "UV_PUBLISH_TOKEN" .env; then
+            echo "" >> .env
             echo "UV_PUBLISH_TOKEN=\"$USER_TOKEN\"" >> .env
             echo "✓ Token sonraki kullanımlar için .env dosyasına kaydedildi (.gitignore korumalı)."
         fi

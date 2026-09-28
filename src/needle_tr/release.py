@@ -70,13 +70,40 @@ def run_git_command(args: list[str]) -> str:
     return res.stdout.strip()
 
 
+def load_env_tokens(env_path: Path = Path(".env")) -> dict[str, str]:
+    """Loads environment variables from .env file if it exists."""
+    tokens = {}
+    if env_path.exists():
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                k, v = line.split("=", 1)
+                tokens[k.strip()] = v.strip("\"' ")
+    return tokens
+
+
+def get_pypi_token() -> Optional[str]:
+    """Returns PyPI publishing token from env or .env file."""
+    for key in ("UV_PUBLISH_TOKEN", "PYPI_API_TOKEN", "PYPI_TOKEN", "PYPI_API_TOKKEN"):
+        if key in sys.modules.get("os", __import__("os")).environ:
+            return sys.modules.get("os", __import__("os")).environ[key]
+    env_tokens = load_env_tokens()
+    for key in ("UV_PUBLISH_TOKEN", "PYPI_API_TOKEN", "PYPI_TOKEN", "PYPI_API_TOKKEN"):
+        if key in env_tokens:
+            return env_tokens[key]
+    return None
+
+
 def run_release(
     bump_type: str = "patch",
     push: bool = False,
+    publish: bool = False,
     custom_message: Optional[str] = None,
     pyproject_path: Path = Path("pyproject.toml"),
 ) -> str:
-    """Sürüm yükseltme, commit ve git tag işlemlerini uçtan uca yürütür."""
+    """Sürüm yükseltme, commit, git tag ve opsiyonel PyPI dağıtımını yürütür."""
     # 1. Mevcut sürümü al ve yenisini hesapla
     current_version = get_current_version(pyproject_path)
     new_version = calculate_next_version(current_version, bump_type)
@@ -106,12 +133,31 @@ def run_release(
     # 4. İsteğe bağlı push
     if push:
         print(f"[4/4] 🚀 Değişiklikler ve etiket GitHub'a gönderiliyor...")
-        # Mevcut aktif branch'i tespit et
         branch = run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
         run_git_command(["git", "push", "origin", branch, "--tags"])
         print(f"      ✨ GitHub'a push tamamlandı! GitHub Actions yayını tetiklendi.")
     else:
-        print(f"[4/4] ℹ️ Değişiklikleri GitHub'a göndermek ve PyPI yayınını başlatmak için şunu çalıştırın:")
+        print(f"[4/4] ℹ️ Değişiklikleri GitHub'a göndermek için şunu çalıştırın:")
         print(f"      git push origin main --tags\n")
+
+    # 5. İsteğe bağlı doğrudan PyPI yayını (.env'den token alarak)
+    if publish:
+        print("\n[PyPI] Paket derleniyor ve PyPI'ye yayınlanıyor...")
+        import shutil
+        dist_dir = Path("dist")
+        if dist_dir.exists():
+            shutil.rmtree(dist_dir)
+        subprocess.run(["uv", "build"], check=True)
+
+        token = get_pypi_token()
+        if not token:
+            print("⚠️  .env dosyasında veya ortamda PyPI token (UV_PUBLISH_TOKEN / PYPI_API_TOKEN) bulunamadı.")
+            token = input("🔑 Lütfen PyPI API token'ınızı girin: ").strip()
+
+        if token:
+            subprocess.run(["uv", "publish", "--token", token], check=True)
+            print("✨ PyPI yayını başarıyla tamamlandı!")
+        else:
+            print("❌ Token girilmediği için PyPI yayını atlandı.")
 
     return new_version
