@@ -36,16 +36,21 @@ The project builds upon and extends the lightweight on-device foundation model *
 
 ### 📦 Installation
 
-Install via `pip`:
+Standard lightweight installation (agent and CLI only, ~20 MB):
 ```bash
 pip install needle-tr
 ```
 
-Or clone and manage using [uv](https://github.com/astral-sh/uv):
+For **fine-tuning** and **Hugging Face** training dependencies:
+```bash
+pip install "needle-tr[train]"
+```
+
+Or for development with [uv](https://github.com/astral-sh/uv):
 ```bash
 git clone https://github.com/emrekayik/needle-tr.git
 cd needle-tr
-uv sync
+uv sync --extra train
 ```
 
 ---
@@ -63,13 +68,20 @@ uv run needle-tr generate-data
 uv run needle-tr generate-data --use-ollama --ollama-model qwen2.5:7b
 ```
 
-#### 2. Fine-Tuning
+#### 2. Fine-Tuning & Hugging Face Upload
 ```bash
 # Dry-run validation (checks dataset and GPU settings without training)
 uv run needle-tr train --dry-run
 
 # Run LoRA training
 uv run needle-tr train --base-model Qwen/Qwen2.5-7B-Instruct --epochs 3
+
+# Train and automatically publish LoRA adapter to Hugging Face
+uv run needle-tr train --base-model Qwen/Qwen2.5-7B-Instruct --push-to-hub --hub-model-id username/needle-tr-lora
+
+# Push existing trained model or dataset to Hugging Face Hub anytime
+uv run needle-tr push-hub username/needle-tr-lora --model-dir models/needle_lora
+uv run needle-tr push-hub username/needle-tr-dataset --dataset
 ```
 
 #### 3. Export to Ollama
@@ -189,16 +201,21 @@ Proje, [Cactus Compute](https://github.com/cactus-compute/needle) tarafından ge
 
 ### 📦 Kurulum
 
-`pip` ile doğrudan kurun:
+Standart hafif kurulum (yalnızca yerel ajan ve CLI, ~20 MB):
 ```bash
 pip install needle-tr
+```
+
+**Fine-tuning** (ince ayar) ve **Hugging Face** eğitim kütüphaneleriyle birlikte kurulum:
+```bash
+pip install "needle-tr[train]"
 ```
 
 Geliştirici ortamı için [uv](https://github.com/astral-sh/uv) ile senkronize edin:
 ```bash
 git clone https://github.com/emrekayik/needle-tr.git
 cd needle-tr
-uv sync
+uv sync --extra train
 ```
 
 ---
@@ -216,13 +233,20 @@ uv run needle-tr generate-data
 uv run needle-tr generate-data --use-ollama --ollama-model qwen2.5:7b
 ```
 
-#### 2. İnce Ayar Eğitimi (`Fine-Tuning`)
+#### 2. İnce Ayar Eğitimi & Hugging Face Dağıtımı (`Fine-Tuning & Hub Push`)
 ```bash
 # Dry-run (eğitimi başlatmadan veri setini ve GPU ayarlarını ön doğrulama)
 uv run needle-tr train --dry-run
 
 # LoRA eğitimini başlat
 uv run needle-tr train --base-model Qwen/Qwen2.5-7B-Instruct --epochs 3
+
+# Modeli eğitip otomatik olarak Hugging Face Hub'a yükle
+uv run needle-tr train --base-model Qwen/Qwen2.5-7B-Instruct --push-to-hub --hub-model-id kullanici_adi/needle-tr-lora
+
+# Eğitilmiş modeli veya veri setini dilediğiniz zaman Hugging Face'e aktarın
+uv run needle-tr push-hub kullanici_adi/needle-tr-lora --model-dir models/needle_lora
+uv run needle-tr push-hub kullanici_adi/needle-tr-dataset --dataset
 ```
 
 #### 3. Ollama Ortamına Aktarım (`Ollama Export`)

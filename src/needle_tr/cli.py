@@ -8,7 +8,12 @@ from .benchmark import generate_benchmark_svg, run_benchmark, update_readme_benc
 from .dataset_generator import build_dataset, check_ollama_available
 from .export_ollama import write_modelfile
 from .release import run_release
-from .trainer import TrainingConfig, run_training
+from .trainer import (
+    TrainingConfig,
+    push_dataset_to_hub,
+    push_model_to_hub,
+    run_training,
+)
 
 
 def cmd_generate_data(args):
@@ -38,8 +43,30 @@ def cmd_train(args):
         epochs=args.epochs,
         data_dir=args.data_dir,
         output_dir=args.output_dir,
+        push_to_hub=args.push_to_hub,
+        hub_model_id=args.hub_model_id,
+        hub_token=args.hub_token,
+        merge_before_push=args.merge_before_push,
     )
     run_training(cfg, dry_run=args.dry_run)
+
+
+def cmd_push_hub(args):
+    """Hugging Face Hub'a model veya veri seti yükleme komutu."""
+    if args.dataset:
+        push_dataset_to_hub(
+            data_dir=args.data_dir,
+            hub_dataset_id=args.repo_id,
+            token=args.token,
+        )
+    else:
+        push_model_to_hub(
+            model_dir=args.model_dir,
+            hub_model_id=args.repo_id,
+            token=args.token,
+            base_model_name=args.base_model,
+            merge=args.merge,
+        )
 
 
 def cmd_export_ollama(args):
@@ -132,7 +159,22 @@ def main():
     p_train.add_argument("--epochs", type=int, default=3, help="Epoch sayısı")
     p_train.add_argument("--data-dir", default="data", help="Eğitim verisi dizini")
     p_train.add_argument("--output-dir", default="models/needle_lora", help="Model kayıt dizini")
+    p_train.add_argument("--push-to-hub", action="store_true", help="Eğitim sonrası modeli Hugging Face Hub'a otomatik yükle")
+    p_train.add_argument("--hub-model-id", default=None, help="Hugging Face model ID (örn: kullanici_adi/model-adi)")
+    p_train.add_argument("--hub-token", default=None, help="Hugging Face API token (HF_TOKEN)")
+    p_train.add_argument("--merge-before-push", action="store_true", help="Yüklemeden önce LoRA'yı temel modelle birleştir")
     p_train.set_defaults(func=cmd_train)
+
+    # push-hub
+    p_push = subparsers.add_parser("push-hub", help="Modeli veya veri kümesini Hugging Face Hub'a yükle")
+    p_push.add_argument("repo_id", help="Hugging Face repo ID (örn: kullanici_adi/needle-tr-lora)")
+    p_push.add_argument("--model-dir", default="models/needle_lora", help="Yüklenecek model klasörü")
+    p_push.add_argument("--base-model", default="Qwen/Qwen2.5-7B-Instruct", help="Birleştirme için temel model")
+    p_push.add_argument("--merge", action="store_true", help="LoRA adaptörünü temel modelle birleştirip tam model yükle")
+    p_push.add_argument("--dataset", action="store_true", help="Model yerine data/ veri setini yükle")
+    p_push.add_argument("--data-dir", default="data", help="Veri seti klasörü (dataset yükleme için)")
+    p_push.add_argument("--token", default=None, help="Hugging Face API token (varsayılan: HF_TOKEN env)")
+    p_push.set_defaults(func=cmd_push_hub)
 
     # export-ollama
     p_export = subparsers.add_parser("export-ollama", help="Ollama için Modelfile hazırla")
