@@ -1,6 +1,6 @@
 [project]
 name = "needle-tr"
-version = "0.1.2"
+version = "0.1.3"
 description = "Türkçe Araç Çağırıcı ve Fine-Tuning Sistemi"
 readme = "README.md"
 authors = [
