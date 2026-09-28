@@ -7,6 +7,7 @@ from pathlib import Path
 from .benchmark import generate_benchmark_svg, run_benchmark, update_readme_benchmark
 from .dataset_generator import build_dataset, check_ollama_available
 from .export_ollama import write_modelfile
+from .release import run_release
 from .trainer import TrainingConfig, run_training
 
 
@@ -95,6 +96,15 @@ def cmd_benchmark(args):
     print("\n✨ Benchmark tamamlandı!")
 
 
+def cmd_release(args):
+    """Sürüm yükseltme ve tag oluşturma komutu."""
+    run_release(
+        bump_type=args.bump,
+        push=args.push,
+        custom_message=args.message,
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="needle-tr",
@@ -138,6 +148,27 @@ def main():
     p_bench.add_argument("--readme", default="README.md", help="Güncellenecek README dosya yolu")
     p_bench.add_argument("--no-readme", action="store_true", help="README.md güncellemesini atla")
     p_bench.set_defaults(func=cmd_benchmark)
+
+    # release
+    p_release = subparsers.add_parser("release", help="Sürümü artır, git commit ve tag oluştur")
+    p_release.add_argument(
+        "bump",
+        nargs="?",
+        default="patch",
+        help="Sürüm artırma türü: 'patch', 'minor', 'major' veya doğrudan '0.2.0' (varsayılan: patch)",
+    )
+    p_release.add_argument(
+        "--push",
+        action="store_true",
+        help="Commit ve etiketleri otomatik olarak GitHub'a gönder (git push origin <branch> --tags)",
+    )
+    p_release.add_argument(
+        "-m",
+        "--message",
+        default=None,
+        help="Özel commit mesajı (varsayılan: 'chore: release vX.Y.Z')",
+    )
+    p_release.set_defaults(func=cmd_release)
 
     args = parser.parse_args()
     if not hasattr(args, "func"):

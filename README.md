@@ -96,7 +96,7 @@ Ayrıntılı adımlar ve mimari açıklamaları için [FINETUNE_GUIDE.md](FINETU
 
 `needle-tr` yerleşik benchmark aracı ile ölçülen son başarım sonuçları:
 
-![Needle-TR Benchmark Sonuçları](benchmark_results.svg)
+![Needle-TR Benchmark Sonuçları](https://raw.githubusercontent.com/emrekayik/needle-tr/main/benchmark_results.svg)
 
 ### 📈 Özet Performans Metrikleri
 

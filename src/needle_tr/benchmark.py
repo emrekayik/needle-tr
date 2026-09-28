@@ -501,7 +501,11 @@ def generate_benchmark_svg(summary: BenchmarkSummary, output_path: Path) -> Path
     return output_path
 
 
-def update_readme_benchmark(summary: BenchmarkSummary, svg_relative_path: str = "benchmark_results.svg", readme_path: Path = Path("README.md")) -> None:
+def update_readme_benchmark(
+    summary: BenchmarkSummary,
+    svg_relative_path: str = "https://raw.githubusercontent.com/emrekayik/needle-tr/main/benchmark_results.svg",
+    readme_path: Path = Path("README.md"),
+) -> None:
     """README.md dosyasındaki benchmark tablosunu ve görsel referansını günceller."""
     if not readme_path.exists():
         return
