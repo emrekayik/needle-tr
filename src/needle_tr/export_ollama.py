@@ -12,10 +12,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-try:
-    from .tools import get_tools_schema
-except ImportError:
-    from tools import get_tools_schema
+from .tools import get_tools_schema
 
 
 DEFAULT_MODELFILE_PATH = Path("Modelfile")
@@ -53,7 +50,7 @@ def generate_modelfile_content(
     from_target = custom_gguf_path if custom_gguf_path else base_model
 
     modelfile = f"""# ==============================================================================
-# Needleeee Türkçe Araç Çağırıcı (Ollama Modelfile)
+# Needle-TR Türkçe Araç Çağırıcı (Ollama Modelfile)
 # Oluşturulduğu model: {from_target}
 # ==============================================================================
 

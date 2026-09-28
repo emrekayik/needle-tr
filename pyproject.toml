@@ -1,7 +1,7 @@
 [project]
-name = "needleeee"
+name = "needle-tr"
 version = "0.1.0"
-description = "Add your description here"
+description = "Türkçe Araç Çağırıcı ve Fine-Tuning Sistemi"
 readme = "README.md"
 authors = [
     { name = "emrekayik", email = "emrekayik1905@gmail.com" }
@@ -9,11 +9,17 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "cactus-needle>=3.0.5",
+    "datasets>=5.0.1",
+    "peft>=0.21.0",
+    "torch>=2.14.0",
+    "transformers>=5.17.0",
+    "trl>=1.14.0",
 ]
 
 [project.scripts]
-needleeee = "needleeee:main"
-needleeee-ft = "needleeee.cli:main"
+needle-tr = "needle_tr.cli:main"
+needle-agent = "needle_tr:main"
+
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]

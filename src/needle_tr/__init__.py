@@ -1,10 +1,7 @@
 import needle
 
 
-try:
-    from .tools import ACTIVE_TOOLS, calculate, get_weather, send_message, set_alarm
-except ImportError:
-    from tools import ACTIVE_TOOLS, calculate, get_weather, send_message, set_alarm
+from .tools import ACTIVE_TOOLS, calculate, get_weather, send_message, set_alarm
 
 agent = needle.Needle(
     tools=ACTIVE_TOOLS,

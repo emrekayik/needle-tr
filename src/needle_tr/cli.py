@@ -1,4 +1,4 @@
-"""Needleeee Fine-Tuning ve Ollama Yönetim Arayüzü (CLI)."""
+"""Needle-TR Fine-Tuning ve Ollama Yönetim Arayüzü (CLI)."""
 
 import argparse
 import sys
@@ -55,8 +55,8 @@ def cmd_export_ollama(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="needleeee-ft",
-        description="Needleeee Türkçe Araç Çağırıcı Fine-Tuning ve Ollama Sistemi",
+        prog="needle-tr",
+        description="Needle-TR: Türkçe Araç Çağırıcı Fine-Tuning ve Ollama Sistemi",
     )
     subparsers = parser.add_subparsers(dest="command", help="Alt komutlar")
 
@@ -81,7 +81,7 @@ def main():
     p_export = subparsers.add_parser("export-ollama", help="Ollama için Modelfile hazırla")
     p_export.add_argument("--output", default="Modelfile", help="Modelfile dosya yolu")
     p_export.add_argument("--base-model", default="qwen2.5:7b", help="Ollama temel modeli")
-    p_export.add_argument("--model-name", default="needle-turkish", help="Oluşturulacak model adı")
+    p_export.add_argument("--model-name", default="needle-tr", help="Oluşturulacak model adı")
     p_export.add_argument("--gguf-path", default=None, help="Özel GGUF model dosya yolu (opsiyonel)")
     p_export.set_defaults(func=cmd_export_ollama)
 

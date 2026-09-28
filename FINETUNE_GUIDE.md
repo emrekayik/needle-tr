@@ -1,4 +1,4 @@
-# Needleeee Türkçe Araç Çağırıcı Fine-Tuning ve Ollama Rehberi
+# Needle-TR: Türkçe Araç Çağırıcı Fine-Tuning ve Ollama Rehberi
 
 Bu sistem, Ollama'yı öğretmen model (sentetik veri üretici) ve hedef çalışma ortamı (Modelfile / GGUF dağıtımı) olarak kullanan uçtan uca bir fine-tuning ve adaptasyon mimarisidir.
 
@@ -14,7 +14,7 @@ Bu sistem, Ollama'yı öğretmen model (sentetik veri üretici) ve hedef çalı�
        ▼
 2. Sentetik Veri Üretimi (dataset_generator.py)
    ├── Tohum (Seed) Türkçe veri kümesi
-   └── Ollama REST API (llama3 / qwen2.5) üzerinden Türkçe veri zenginleştirme
+   └── Ollama REST API (qwen2.5:7b) üzerinden Türkçe veri zenginleştirme
        │
        ▼
 3. Veri Kümeleri (data/train.jsonl & data/val.jsonl)
@@ -27,43 +27,43 @@ Bu sistem, Ollama'yı öğretmen model (sentetik veri üretici) ve hedef çalı�
        │
        ▼
 5. Ollama Dağıtımı (Modelfile & export_ollama.py)
-   └── `ollama create needle-turkish -f Modelfile`
+   └── `ollama create needle-tr -f Modelfile`
 ```
 
 ---
 
 ## 🚀 Komut Satırı Kullanımı (CLI)
 
-Tüm adımlar `needleeee-ft` komutu üzerinden yönetilebilir:
+Tüm adımlar `needle-tr` komutu üzerinden yönetilebilir:
 
 ### 1. Sentetik Türkçe Veri Seti Oluşturma
 Yerel tohum (seed) verilerini kullanarak `data/train.jsonl` ve `data/val.jsonl` oluşturur:
 ```bash
-uv run needleeee-ft generate-data
+uv run needle-tr generate-data
 ```
 
 Ollama sunucunuz aktif olduğunda, yerel `qwen2.5:7b` modelinizden yararlanarak yüzlerce yeni Türkçe varyasyon üretmek için:
 ```bash
-uv run needleeee-ft generate-data --use-ollama --ollama-model qwen2.5:7b
+uv run needle-tr generate-data --use-ollama --ollama-model qwen2.5:7b
 ```
 
 ### 2. Fine-Tuning Yapılandırması ve Eğitimi
 Verileri ve eğitim parametrelerini doğrulamak için (Dry-run):
 ```bash
-uv run needleeee-ft train --dry-run
+uv run needle-tr train --dry-run
 ```
 
-Tam eğitim başlatmak istediğinizde gerekli bağımlılıkları ekleyin:
+Tam eğitim başlatmak istediğinizde:
 ```bash
-uv add torch transformers peft trl datasets
-uv run needleeee-ft train --base-model Qwen/Qwen2.5-7B-Instruct --epochs 3
+uv run needle-tr train --base-model Qwen/Qwen2.5-7B-Instruct --epochs 3
 ```
 
 ### 3. Ollama Modelfile Oluşturma / Güncelleme
 Mevcut araç şemalarını ve Türkçe sistem talimatlarını içeren `Modelfile` dosyasını `qwen2.5:7b` tabanlı üretmek için:
 ```bash
-uv run needleeee-ft export-ollama --base-model qwen2.5:7b --model-name needle-turkish
+uv run needle-tr export-ollama --base-model qwen2.5:7b --model-name needle-tr
 ```
+
 
 
 ---
@@ -72,6 +72,6 @@ uv run needleeee-ft export-ollama --base-model qwen2.5:7b --model-name needle-tu
 
 Ollama uygulamanızı başlattıktan sonra, oluşturulan Modelfile ile özel modelinizi tek komutla oluşturabilirsiniz:
 ```bash
-ollama create needle-turkish -f Modelfile
-ollama run needle-turkish "25 * 4 hesapla"
+ollama create needle-tr -f Modelfile
+ollama run needle-tr "25 * 4 hesapla"
 ```

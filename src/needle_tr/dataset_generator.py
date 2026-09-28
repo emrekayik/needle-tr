@@ -19,10 +19,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-try:
-    from .tools import ACTIVE_TOOLS, get_tools_schema
-except ImportError:
-    from tools import ACTIVE_TOOLS, get_tools_schema
+from .tools import ACTIVE_TOOLS, get_tools_schema
 
 
 SEED_DATA: List[Dict[str, Any]] = [
