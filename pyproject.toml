@@ -1,6 +1,6 @@
 [project]
 name = "needle-tr"
-version = "0.1.6"
+version = "0.1.7"
 description = "Türkçe Araç Çağırıcı ve Fine-Tuning Sistemi"
 readme = "README.md"
 authors = [
@@ -14,8 +14,13 @@ dependencies = [
 [project.optional-dependencies]
 train = [
     "datasets>=5.0.1",
+    "flax>=0.10.7",
     "huggingface-hub>=0.28.0",
+    "jax>=0.6.2",
+    "optax>=0.2.8",
     "peft>=0.21.0",
+    "safetensors>=0.8.0",
+    "sentencepiece>=0.2.2",
     "torch>=2.14.0",
     "transformers>=5.17.0",
     "trl>=1.14.0",
