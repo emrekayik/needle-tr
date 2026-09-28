@@ -38,32 +38,32 @@
 
   <!-- Başlık ve Meta -->
   <text x="32" y="44" class="title">⚡ Needle-TR Benchmark Raporu</text>
-  <text x="32" y="68" class="subtitle">Hedef: <tspan fill="#38bdf8" font-weight="600">Cactus Needle (On-Device Agent)</tspan> | Test Sayısı: 210 | Tarih: 2026-09-28 19:14:06</text>
+  <text x="32" y="68" class="subtitle">Hedef: <tspan fill="#38bdf8" font-weight="600">Cactus Needle (On-Device Agent)</tspan> | Test Sayısı: 210 | Tarih: 2026-09-28 21:11:53</text>
 
   <!-- KPI Kartları -->
   <g transform="translate(32, 96)" filter="url(#shadow)">
     <rect width="175" height="86" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
     <text x="14" y="24" class="kpi-title">Araç Doğruluğu</text>
-    <text x="14" y="54" class="kpi-value" fill="#38bdf8">%75.7</text>
-    <text x="14" y="72" class="kpi-sub">159/210 başarılı</text>
+    <text x="14" y="54" class="kpi-value" fill="#38bdf8">%81.4</text>
+    <text x="14" y="72" class="kpi-sub">171/210 başarılı</text>
   </g>
   <g transform="translate(223, 96)" filter="url(#shadow)">
     <rect width="175" height="86" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
     <text x="14" y="24" class="kpi-title">Argüman Doğruluğu</text>
-    <text x="14" y="54" class="kpi-value" fill="#818cf8">%66.2</text>
-    <text x="14" y="72" class="kpi-sub">139/210 eşleşme</text>
+    <text x="14" y="54" class="kpi-value" fill="#818cf8">%62.4</text>
+    <text x="14" y="72" class="kpi-sub">131/210 eşleşme</text>
   </g>
   <g transform="translate(414, 96)" filter="url(#shadow)">
     <rect width="175" height="86" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
     <text x="14" y="24" class="kpi-title">Geçerli Çağrı Oranı</text>
-    <text x="14" y="54" class="kpi-value" fill="#34d399">%99.5</text>
-    <text x="14" y="72" class="kpi-sub">209/210 parse edildi</text>
+    <text x="14" y="54" class="kpi-value" fill="#34d399">%100.0</text>
+    <text x="14" y="72" class="kpi-sub">210/210 parse edildi</text>
   </g>
   <g transform="translate(605, 96)" filter="url(#shadow)">
     <rect width="175" height="86" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
     <text x="14" y="24" class="kpi-title">Ortalama Gecikme</text>
-    <text x="14" y="54" class="kpi-value" fill="#f472b6">197.8 ms</text>
-    <text x="14" y="72" class="kpi-sub">min: 51.5 / max: 1014.2</text>
+    <text x="14" y="54" class="kpi-value" fill="#f472b6">224.2 ms</text>
+    <text x="14" y="72" class="kpi-sub">min: 84.5 / max: 1177.1</text>
   </g>
 
   <!-- Araç Bazında Başarım Dağılımı -->
@@ -74,31 +74,31 @@
   <!-- Background bar -->
   <rect x="220" y="270" width="380" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1" />
   <!-- Fill bar -->
-  <rect x="220" y="270" width="345" height="18" rx="9" fill="url(#barGradCyan)" />
+  <rect x="220" y="270" width="373" height="18" rx="9" fill="url(#barGradCyan)" />
   <!-- Percent & Details -->
-  <text x="616" y="284" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%90.9</tspan> (Araç) | <tspan fill="#818cf8">%67.3</tspan> (Arg) | <tspan fill="#94a3b8">126.6ms</tspan></text>
+  <text x="616" y="284" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%98.2</tspan> (Araç) | <tspan fill="#818cf8">%63.6</tspan> (Arg) | <tspan fill="#94a3b8">194.7ms</tspan></text>
   <!-- Tool: get_weather -->
   <text x="52" y="322" class="tool-label">get_weather()</text>
   <!-- Background bar -->
   <rect x="220" y="308" width="380" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1" />
   <!-- Fill bar -->
-  <rect x="220" y="308" width="352" height="18" rx="9" fill="url(#barGradCyan)" />
+  <rect x="220" y="308" width="310" height="18" rx="9" fill="url(#barGradCyan)" />
   <!-- Percent & Details -->
-  <text x="616" y="322" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%92.7</tspan> (Araç) | <tspan fill="#818cf8">%81.8</tspan> (Arg) | <tspan fill="#94a3b8">253.5ms</tspan></text>
+  <text x="616" y="322" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%81.8</tspan> (Araç) | <tspan fill="#818cf8">%69.1</tspan> (Arg) | <tspan fill="#94a3b8">228.2ms</tspan></text>
   <!-- Tool: send_message -->
   <text x="52" y="360" class="tool-label">send_message()</text>
   <!-- Background bar -->
   <rect x="220" y="346" width="380" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1" />
   <!-- Fill bar -->
-  <rect x="220" y="346" width="60" height="18" rx="9" fill="url(#barGradCyan)" />
+  <rect x="220" y="346" width="174" height="18" rx="9" fill="url(#barGradCyan)" />
   <!-- Percent & Details -->
-  <text x="616" y="360" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%16.0</tspan> (Araç) | <tspan fill="#818cf8">%14.0</tspan> (Arg) | <tspan fill="#94a3b8">164.2ms</tspan></text>
+  <text x="616" y="360" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%46.0</tspan> (Araç) | <tspan fill="#818cf8">%30.0</tspan> (Arg) | <tspan fill="#94a3b8">287.1ms</tspan></text>
   <!-- Tool: set_alarm -->
   <text x="52" y="398" class="tool-label">set_alarm()</text>
   <!-- Background bar -->
   <rect x="220" y="384" width="380" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1" />
   <!-- Fill bar -->
-  <rect x="220" y="384" width="380" height="18" rx="9" fill="url(#barGradCyan)" />
+  <rect x="220" y="384" width="372" height="18" rx="9" fill="url(#barGradCyan)" />
   <!-- Percent & Details -->
-  <text x="616" y="398" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%100.0</tspan> (Araç) | <tspan fill="#818cf8">%100.0</tspan> (Arg) | <tspan fill="#94a3b8">248.5ms</tspan></text>
+  <text x="616" y="398" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%98.0</tspan> (Araç) | <tspan fill="#818cf8">%86.0</tspan> (Arg) | <tspan fill="#94a3b8">189.3ms</tspan></text>
 </svg>

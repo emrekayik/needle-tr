@@ -1639,7 +1639,7 @@ wheels = [
 
 [[package]]
 name = "needle-tr"
-version = "0.1.9"
+version = "0.1.11"
 source = { editable = "." }
 dependencies = [
     { name = "cactus-needle" },
