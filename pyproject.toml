@@ -1,0 +1,20 @@
+[project]
+name = "needleeee"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "emrekayik", email = "emrekayik1905@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "cactus-needle>=3.0.5",
+]
+
+[project.scripts]
+needleeee = "needleeee:main"
+needleeee-ft = "needleeee.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
