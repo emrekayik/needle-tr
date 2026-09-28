@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from .benchmark import generate_benchmark_svg, run_benchmark, update_readme_benchmark
 from .dataset_generator import build_dataset, check_ollama_available
 from .export_ollama import write_modelfile
 from .trainer import TrainingConfig, run_training
@@ -53,6 +54,47 @@ def cmd_export_ollama(args):
     print(f"  ollama create {args.model_name} -f {target_path}")
 
 
+def cmd_benchmark(args):
+    """Model veya ajan için benchmark çalıştırır."""
+    dataset_path = Path(args.dataset) if args.dataset else None
+    print(f"\n[1/3] 🧪 Benchmark başlatılıyor (Hedef: {args.target})...")
+    summary = run_benchmark(
+        target=args.target,
+        dataset_path=dataset_path,
+        use_builtin_suite=args.suite,
+        ollama_model=args.ollama_model,
+        ollama_host=args.ollama_host,
+    )
+
+    print(f"\n{'='*55}")
+    print(f"  ⚡ NEEDLE-TR BENCHMARK SONUÇLARI")
+    print(f"{'='*55}")
+    print(f" Hedef:                 {summary.target_name}")
+    print(f" Toplam Test:           {summary.total_tests}")
+    print(f" Araç Seçim Doğruluğu:  %{summary.tool_accuracy:.1f} ({summary.tool_correct_count}/{summary.total_tests})")
+    print(f" Argüman Doğruluğu:     %{summary.args_accuracy:.1f} ({summary.args_correct_count}/{summary.total_tests})")
+    print(f" Geçerli Format Oranı:  %{summary.valid_format_rate:.1f} ({summary.valid_format_count}/{summary.total_tests})")
+    print(f" Ortalama Gecikme:      {summary.avg_latency_ms:.1f} ms (min: {summary.min_latency_ms:.1f}, max: {summary.max_latency_ms:.1f})")
+    print(f"{'-'*55}")
+    print(f" Araç Bazında Başarım:")
+    for t_name, stats in summary.per_tool_stats.items():
+        print(f"   • {t_name:<14} -> Araç: %{stats['tool_accuracy']:<5.1f} | Arg: %{stats['args_accuracy']:<5.1f} | Gecikme: {stats['avg_latency_ms']:.1f}ms")
+    print(f"{'='*55}\n")
+
+    chart_path = Path(args.chart)
+    print(f"[2/3] 📊 Performans grafiği oluşturuluyor: {chart_path}...")
+    generate_benchmark_svg(summary, chart_path)
+    print(f"      Grafik başarıyla kaydedildi: {chart_path.resolve()}")
+
+    if not args.no_readme:
+        readme_path = Path(args.readme)
+        print(f"[3/3] 📝 Sonuçlar ve grafik {readme_path} dosyasına yazılıyor...")
+        update_readme_benchmark(summary, svg_relative_path=args.chart, readme_path=readme_path)
+        print(f"      {readme_path} başarıyla güncellendi.")
+
+    print("\n✨ Benchmark tamamlandı!")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="needle-tr",
@@ -84,6 +126,18 @@ def main():
     p_export.add_argument("--model-name", default="needle-tr", help="Oluşturulacak model adı")
     p_export.add_argument("--gguf-path", default=None, help="Özel GGUF model dosya yolu (opsiyonel)")
     p_export.set_defaults(func=cmd_export_ollama)
+
+    # benchmark
+    p_bench = subparsers.add_parser("benchmark", help="Doğruluk ve gecikme benchmark'ı çalıştırıp grafik üret")
+    p_bench.add_argument("--target", choices=["agent", "ollama"], default="agent", help="Test edilecek hedef (varsayılan: agent)")
+    p_bench.add_argument("--dataset", default="data/val.jsonl", help="Doğrulama veri seti dosya yolu")
+    p_bench.add_argument("--suite", action="store_true", help="Yerleşik kapsamlı benchmark test paketini kullan")
+    p_bench.add_argument("--ollama-model", default="needle-tr", help="Ollama model adı (target=ollama için)")
+    p_bench.add_argument("--ollama-host", default="http://localhost:11434", help="Ollama API adresi")
+    p_bench.add_argument("--chart", default="benchmark_results.svg", help="Üretilecek SVG grafik dosya adı")
+    p_bench.add_argument("--readme", default="README.md", help="Güncellenecek README dosya yolu")
+    p_bench.add_argument("--no-readme", action="store_true", help="README.md güncellemesini atla")
+    p_bench.set_defaults(func=cmd_benchmark)
 
     args = parser.parse_args()
     if not hasattr(args, "func"):

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 420" width="100%" height="100%">
+  <defs>
+    <!-- Arka plan ve kart gradyanları -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.9" />
+    </linearGradient>
+    <linearGradient id="barGradCyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <linearGradient id="barGradGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <style>
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 20px; font-weight: 700; fill: #f8fafc; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: #94a3b8; }
+    .kpi-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; fill: #94a3b8; font-weight: 600; }
+    .kpi-value { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 24px; font-weight: 800; }
+    .kpi-sub { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #64748b; }
+    .section-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; font-weight: 600; fill: #cbd5e1; }
+    .tool-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; font-size: 13px; fill: #e2e8f0; }
+    .tool-stat { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 12px; fill: #94a3b8; }
+  </style>
+
+  <!-- Arka Plan -->
+  <rect width="820" height="420" rx="16" fill="url(#bgGrad)" stroke="#334155" stroke-width="1" />
+
+  <!-- Başlık ve Meta -->
+  <text x="32" y="44" class="title">⚡ Needle-TR Benchmark Raporu</text>
+  <text x="32" y="68" class="subtitle">Hedef: <tspan fill="#38bdf8" font-weight="600">Cactus Needle (On-Device Agent)</tspan> | Test Sayısı: 14 | Tarih: 2026-09-28 15:13:49</text>
+
+  <!-- KPI Kartları -->
+  <g transform="translate(32, 96)" filter="url(#shadow)">
+    <rect width="175" height="86" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <text x="14" y="24" class="kpi-title">Araç Doğruluğu</text>
+    <text x="14" y="54" class="kpi-value" fill="#38bdf8">%92.9</text>
+    <text x="14" y="72" class="kpi-sub">13/14 başarılı</text>
+  </g>
+  <g transform="translate(223, 96)" filter="url(#shadow)">
+    <rect width="175" height="86" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <text x="14" y="24" class="kpi-title">Argüman Doğruluğu</text>
+    <text x="14" y="54" class="kpi-value" fill="#818cf8">%78.6</text>
+    <text x="14" y="72" class="kpi-sub">11/14 eşleşme</text>
+  </g>
+  <g transform="translate(414, 96)" filter="url(#shadow)">
+    <rect width="175" height="86" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <text x="14" y="24" class="kpi-title">Geçerli Çağrı Oranı</text>
+    <text x="14" y="54" class="kpi-value" fill="#34d399">%100.0</text>
+    <text x="14" y="72" class="kpi-sub">14/14 parse edildi</text>
+  </g>
+  <g transform="translate(605, 96)" filter="url(#shadow)">
+    <rect width="175" height="86" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" />
+    <text x="14" y="24" class="kpi-title">Ortalama Gecikme</text>
+    <text x="14" y="54" class="kpi-value" fill="#f472b6">261.2 ms</text>
+    <text x="14" y="72" class="kpi-sub">min: 59.1 / max: 931.0</text>
+  </g>
+
+  <!-- Araç Bazında Başarım Dağılımı -->
+  <text x="32" y="226" class="section-title">📊 Araç Bazında Doğruluk Dağılımı</text>
+  <rect x="32" y="238" width="756" height="158" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1" filter="url(#shadow)" />
+  <!-- Tool: calculate -->
+  <text x="52" y="284" class="tool-label">calculate()</text>
+  <!-- Background bar -->
+  <rect x="220" y="270" width="380" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1" />
+  <!-- Fill bar -->
+  <rect x="220" y="270" width="380" height="18" rx="9" fill="url(#barGradCyan)" />
+  <!-- Percent & Details -->
+  <text x="616" y="284" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%100.0</tspan> (Araç) | <tspan fill="#818cf8">%50.0</tspan> (Arg) | <tspan fill="#94a3b8">75.3ms</tspan></text>
+  <!-- Tool: get_weather -->
+  <text x="52" y="322" class="tool-label">get_weather()</text>
+  <!-- Background bar -->
+  <rect x="220" y="308" width="380" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1" />
+  <!-- Fill bar -->
+  <rect x="220" y="308" width="285" height="18" rx="9" fill="url(#barGradCyan)" />
+  <!-- Percent & Details -->
+  <text x="616" y="322" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%75.0</tspan> (Araç) | <tspan fill="#818cf8">%75.0</tspan> (Arg) | <tspan fill="#94a3b8">556.5ms</tspan></text>
+  <!-- Tool: send_message -->
+  <text x="52" y="360" class="tool-label">send_message()</text>
+  <!-- Background bar -->
+  <rect x="220" y="346" width="380" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1" />
+  <!-- Fill bar -->
+  <rect x="220" y="346" width="380" height="18" rx="9" fill="url(#barGradCyan)" />
+  <!-- Percent & Details -->
+  <text x="616" y="360" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%100.0</tspan> (Araç) | <tspan fill="#818cf8">%100.0</tspan> (Arg) | <tspan fill="#94a3b8">214.8ms</tspan></text>
+  <!-- Tool: set_alarm -->
+  <text x="52" y="398" class="tool-label">set_alarm()</text>
+  <!-- Background bar -->
+  <rect x="220" y="384" width="380" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1" />
+  <!-- Fill bar -->
+  <rect x="220" y="384" width="380" height="18" rx="9" fill="url(#barGradCyan)" />
+  <!-- Percent & Details -->
+  <text x="616" y="398" class="tool-stat"><tspan fill="#38bdf8" font-weight="700">%100.0</tspan> (Araç) | <tspan fill="#818cf8">%100.0</tspan> (Arg) | <tspan fill="#94a3b8">161.6ms</tspan></text>
+</svg>

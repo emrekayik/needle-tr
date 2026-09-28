@@ -1,12 +1,12 @@
 [project]
 name = "needle-tr"
-version = "0.1.0"
+version = "0.1.1"
 description = "Türkçe Araç Çağırıcı ve Fine-Tuning Sistemi"
 readme = "README.md"
 authors = [
     { name = "emrekayik", email = "emrekayik1905@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 dependencies = [
     "cactus-needle>=3.0.5",
     "datasets>=5.0.1",

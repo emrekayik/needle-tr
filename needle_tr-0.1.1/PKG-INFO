@@ -1,3 +1,18 @@
+Metadata-Version: 2.3
+Name: needle-tr
+Version: 0.1.1
+Summary: Türkçe Araç Çağırıcı ve Fine-Tuning Sistemi
+Author: emrekayik
+Author-email: emrekayik <emrekayik1905@gmail.com>
+Requires-Dist: cactus-needle>=3.0.5
+Requires-Dist: datasets>=5.0.1
+Requires-Dist: peft>=0.21.0
+Requires-Dist: torch>=2.14.0
+Requires-Dist: transformers>=5.17.0
+Requires-Dist: trl>=1.14.0
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+
 # needle-tr
 
 Türkçe Araç Çağırıcı (Tool Calling) ve Fine-Tuning Sistemi.
