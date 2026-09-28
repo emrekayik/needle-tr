@@ -132,19 +132,19 @@ Latest benchmark results measured with the built-in `needle-tr benchmark` tool:
 | Metric | Value | Description |
 | :--- | :--- | :--- |
 | **Target Tested** | `Cactus Needle (On-Device Agent)` | Tested environment (Agent / Model) |
-| **Total Test Samples** | **14** | Number of Turkish test queries |
-| **Tool Selection Accuracy** | **%92.9** (13/14) | Correct tool selected rate |
-| **Argument Match Accuracy** | **%78.6** (11/14) | Exact/semantic parameter match rate |
-| **Valid Format Rate** | **%100.0** (14/14) | Cleanly parsed structured output rate |
-| **Average Latency** | **261.2 ms** | Min: 59.1 ms, Max: 931.0 ms |
-| **Last Updated** | `2026-09-28 15:13:49` | Benchmark execution timestamp |
+| **Total Test Samples** | **210** | Number of Turkish test queries |
+| **Tool Selection Accuracy** | **%75.7** (159/210) | Correct tool selected rate |
+| **Argument Match Accuracy** | **%66.2** (139/210) | Exact/semantic parameter match rate |
+| **Valid Format Rate** | **%99.5** (209/210) | Cleanly parsed structured output rate |
+| **Average Latency** | **197.8 ms** | Min: 51.5 ms, Max: 1014.2 ms |
+| **Last Updated** | `2026-09-28 19:14:06` | Benchmark execution timestamp |
 
 | Tool | Tool Accuracy | Argument Match | Samples | Average Latency |
 | :--- | :---: | :---: | :---: | :---: |
-| `calculate` | %100.0 | %50.0 | 4 | 75.3 ms |
-| `get_weather` | %75.0 | %75.0 | 4 | 556.5 ms |
-| `send_message` | %100.0 | %100.0 | 3 | 214.8 ms |
-| `set_alarm` | %100.0 | %100.0 | 3 | 161.6 ms |
+| `calculate` | %90.9 | %67.3 | 55 | 126.6 ms |
+| `get_weather` | %92.7 | %81.8 | 55 | 253.5 ms |
+| `send_message` | %16.0 | %14.0 | 50 | 164.2 ms |
+| `set_alarm` | %100.0 | %100.0 | 50 | 248.5 ms |
 <!-- BENCHMARK_END -->
 
 ---
@@ -285,19 +285,19 @@ uv run needle-agent
 | Metrik | Değer | Açıklama |
 | :--- | :--- | :--- |
 | **Test Edilen Hedef** | `Cactus Needle (On-Device Agent)` | Test edilen ortam / ajan modeli |
-| **Toplam Test Sorgusu** | **14** | Değerlendirilen Türkçe komut sayısı |
-| **Araç Seçim Doğruluğu** | **%92.9** (13/14) | Doğru fonksiyonu seçme başarısı |
-| **Argüman Doğruluğu** | **%78.6** (11/14) | Parametreleri eksiksiz ayrıştırma oranı |
-| **Geçerli Yanıt Oranı** | **%100.0** (14/14) | Hatasız parse edilen yapısal çıktı oranı |
-| **Ortalama Gecikme (Latency)** | **261.2 ms** | İstek başına ortalama yanıt süresi |
-| **Son Güncelleme** | `2026-09-28 15:13:49` | Testin çalıştırıldığı zaman |
+| **Toplam Test Sorgusu** | **210** | Değerlendirilen Türkçe komut sayısı |
+| **Araç Seçim Doğruluğu** | **%75.7** (159/210) | Doğru fonksiyonu seçme başarısı |
+| **Argüman Doğruluğu** | **%66.2** (139/210) | Parametreleri eksiksiz ayrıştırma oranı |
+| **Geçerli Yanıt Oranı** | **%100.0** (209/210) | Hatasız parse edilen yapısal çıktı oranı |
+| **Ortalama Gecikme (Latency)** | **197.8 ms** | İstek başına ortalama yanıt süresi |
+| **Son Güncelleme** | `2026-09-28 19:14:06` | Testin çalıştırıldığı zaman |
 
 | Araç (`Tool`) | Araç Doğruluğu | Argüman Eşleşmesi | Test Sayısı | Ortalama Gecikme |
 | :--- | :---: | :---: | :---: | :---: |
-| `calculate` | %100.0 | %50.0 | 4 | 75.3 ms |
-| `get_weather` | %75.0 | %75.0 | 4 | 556.5 ms |
-| `send_message` | %100.0 | %100.0 | 3 | 214.8 ms |
-| `set_alarm` | %100.0 | %100.0 | 3 | 161.6 ms |
+| `calculate` | %90.9 | %67.3 | 55 | 126.6 ms |
+| `get_weather` | %92.7 | %81.8 | 55 | 253.5 ms |
+| `send_message` | %16.0 | %14.0 | 50 | 164.2 ms |
+| `set_alarm` | %100.0 | %100.0 | 50 | 248.5 ms |
 <!-- BENCHMARK_TR_END -->
 
 ---

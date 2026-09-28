@@ -20,82 +20,165 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 
-DEFAULT_BENCHMARK_DATA = [
-    # calculate
-    {
-        "query": "25 * 4 hesapla",
-        "expected_tool": "calculate",
-        "expected_args": {"expression": "25 * 4"},
-    },
-    {
-        "query": "15 ile 48'i topla",
-        "expected_tool": "calculate",
-        "expected_args": {"expression": "15 + 48"},
-    },
-    {
-        "query": "120 bölü 6 kaç eder?",
-        "expected_tool": "calculate",
-        "expected_args": {"expression": "120 / 6"},
-    },
-    {
-        "query": "7'nin karesini al",
-        "expected_tool": "calculate",
-        "expected_args": {"expression": "7 ** 2"},
-    },
-    # get_weather
-    {
-        "query": "İstanbul'da hava durumu nasıl?",
-        "expected_tool": "get_weather",
-        "expected_args": {"city": "İstanbul"},
-    },
-    {
-        "query": "Ankara için hava durumunu göster",
-        "expected_tool": "get_weather",
-        "expected_args": {"city": "Ankara"},
-    },
-    {
-        "query": "İzmir hava durumu nedir?",
-        "expected_tool": "get_weather",
-        "expected_args": {"city": "İzmir"},
-    },
-    {
-        "query": "Lagos'ta hava nasıl?",
-        "expected_tool": "get_weather",
-        "expected_args": {"city": "Lagos"},
-    },
-    # send_message
-    {
-        "query": "Ahmet'e 'Toplantı başladı' mesajı gönder",
-        "expected_tool": "send_message",
-        "expected_args": {"recipient": "Ahmet", "message": "Toplantı başladı"},
-    },
-    {
-        "query": "Mehmet'e 'Yarın buluşuyoruz' diye mesaj ilet",
-        "expected_tool": "send_message",
-        "expected_args": {"recipient": "Mehmet", "message": "Yarın buluşuyoruz"},
-    },
-    {
-        "query": "Ayşe'ye 'Dosyayı gönderdim' mesajı at",
-        "expected_tool": "send_message",
-        "expected_args": {"recipient": "Ayşe", "message": "Dosyayı gönderdim"},
-    },
-    # set_alarm
-    {
-        "query": "Saat 07:30'a alarm kur",
-        "expected_tool": "set_alarm",
-        "expected_args": {"time": "07:30"},
-    },
-    {
-        "query": "14:15'e Toplantı alarmı kur",
-        "expected_tool": "set_alarm",
-        "expected_args": {"time": "14:15", "label": "Toplantı"},
-    },
-    {
-        "query": "Sabah 08:00'e Uyanış alarmı ayarla",
-        "expected_tool": "set_alarm",
-        "expected_args": {"time": "08:00", "label": "Uyanış"},
-    },
-]
+def generate_comprehensive_benchmark_suite() -> List[Dict[str, Any]]:
+    """En az 200 adet (210) kapsamlı ve gerçekçi Türkçe araç çağırma test kümesi üretir."""
+    suite: List[Dict[str, Any]] = []
+
+    # 1. calculate (55 test)
+    math_samples = [
+        ("25 * 4 hesapla", "25 * 4"),
+        ("15 ile 48'i topla", "15 + 48"),
+        ("120 bölü 6 kaç eder?", "120 / 6"),
+        ("7'nin karesini al", "7 ** 2"),
+        ("250'den 85 çıkar", "250 - 85"),
+        ("18 çarpı 5 işlemini yap", "18 * 5"),
+        ("350 artı 145 kaç eder?", "350 + 145"),
+        ("81'in karekökü kaçtır?", "81 ** 0.5"),
+        ("2 üzeri 8 hesapla", "2 ** 8"),
+        ("1000'i 25'e böl", "1000 / 25"),
+        ("45 ile 55'i topla", "45 + 55"),
+        ("600 eksi 275", "600 - 275"),
+        ("12 * 12 kaç yapar?", "12 * 12"),
+        ("144 / 12 hesapla", "144 / 12"),
+        ("5'in küpü nedir?", "5 ** 3"),
+        ("(10 + 5) * 3 sonucunu bul", "(10 + 5) * 3"),
+        ("500 * 0.18 hesapla", "500 * 0.18"),
+        ("320 bölü 4", "320 / 4"),
+        ("75 + 125 topla", "75 + 125"),
+        ("90 eksi 45", "90 - 45"),
+        ("14 * 6 kaç eder?", "14 * 6"),
+        ("100 / 5 işlemini hesapla", "100 / 5"),
+        ("4 üzeri 4 nedir?", "4 ** 4"),
+        ("150 + 250 kaç eder?", "150 + 250"),
+        ("500 - 180 sonucunu ver", "500 - 180"),
+        ("16 çarpı 4 hesapla", "16 * 4"),
+        ("240 / 8", "240 / 8"),
+        ("3 ** 4 kaç yapar?", "3 ** 4"),
+        ("125 + 375 işlemini topla", "125 + 375"),
+        ("1000 - 450", "1000 - 450"),
+        ("25 * 25 kaç eder?", "25 * 25"),
+        ("72 / 9", "72 / 9"),
+        ("10 üzeri 3 hesapla", "10 ** 3"),
+        ("85 + 65 topla", "85 + 65"),
+        ("400 - 150 sonucu nedir?", "400 - 150"),
+        ("30 * 15", "30 * 15"),
+        ("96 / 8 hesapla", "96 / 8"),
+        ("6'nın karesi kaçtır?", "6 ** 2"),
+        ("50 + 75 + 25 topla", "50 + 75 + 25"),
+        ("300 eksi 120", "300 - 120"),
+        ("9 * 9 kaç eder?", "9 * 9"),
+        ("180 / 3", "180 / 3"),
+        ("2 üzeri 10 hesapla", "2 ** 10"),
+        ("220 + 180 topla", "220 + 180"),
+        ("850 - 350", "850 - 350"),
+        ("7 * 8 kaç yapar?", "7 * 8"),
+        ("150 / 10 hesapla", "150 / 10"),
+        ("8'in karesi nedir?", "8 ** 2"),
+        ("65 + 35 kaç eder?", "65 + 35"),
+        ("500 - 75", "500 - 75"),
+        ("11 * 11 hesapla", "11 * 11"),
+        ("200 / 4 işlemini yap", "200 / 4"),
+        ("3 üzeri 3 kaçtır?", "3 ** 3"),
+        ("130 + 70 topla", "130 + 70"),
+        ("700 - 250 sonucu", "700 - 250"),
+    ]
+    for q, expr in math_samples:
+        suite.append({
+            "query": q,
+            "expected_tool": "calculate",
+            "expected_args": {"expression": expr},
+        })
+
+    # 2. get_weather (55 test)
+    cities = [
+        "İstanbul", "Ankara", "İzmir", "Bursa", "Antalya", "Adana", "Konya", "Trabzon",
+        "Gaziantep", "Diyarbakır", "Samsun", "Eskişehir", "Kayseri", "Şanlıurfa", "Erzurum",
+        "Van", "Bodrum", "Çeşme", "Alanya", "Kadıköy", "Mersin", "Hatay", "Malatya",
+        "Sivas", "Batman", "Mardin", "Rize", "Ordu", "Çanakkale", "Edirne", "Lagos",
+        "Londra", "Paris", "Berlin", "Tokyo", "Roma", "Madrid", "Amsterdam", "Viyana",
+        "Prag", "Brüksel", "Kopenhag", "Oslo", "Stockholm", "Helsinki", "Varşova", "Atina",
+        "Moskova", "Seul", "Pekin", "Dubai", "Kahire", "Sidney", "Toronto", "Şikago"
+    ]
+    templates_weather = [
+        "{city}'de hava durumu nasıl?",
+        "{city} için hava durumunu göster",
+        "{city}'da hava kaç derece?",
+        "{city} hava sıcaklığı nedir?",
+        "{city} hava tahminini getir",
+    ]
+    for i, city in enumerate(cities):
+        tmpl = templates_weather[i % len(templates_weather)]
+        suite.append({
+            "query": tmpl.format(city=city),
+            "expected_tool": "get_weather",
+            "expected_args": {"city": city},
+        })
+
+    # 3. send_message (50 test)
+    recipients = [
+        "Ahmet", "Mehmet", "Ayşe", "Fatma", "Ali", "Zeynep", "Can", "Elif", "Mustafa", "Burak",
+        "Cem", "Deniz", "Ece", "Emre", "Hakan", "Selin", "Murat", "Seda", "Ozan", "Gamze",
+        "Kerem", "Leyla", "Onur", "Pınar", "Serkan", "Tuğçe", "Volkan", "Yasemin", "Barış", "Beyza",
+        "Kaan", "Melis", "Tolga", "İrem", "Sinan", "Damla", "Mert", "Derya", "Arda", "Selen",
+        "Alper", "Aslı", "Berk", "Büşra", "Cenk", "Ceren", "Doruk", "Ezgi", "Furkan", "Gizem"
+    ]
+    messages = [
+        "Toplantı başladı", "Yarın saat 10'da ofisteyim", "Raporu e-postana gönderdim",
+        "Akşam yemeğe geliyor musun?", "Dosyaları teslim ettim", "Görüşme ertelendi",
+        "Lütfen beni ara", "Yola çıktım, 15 dakikaya oradayım", "Sunum hazır", "İyi akşamlar",
+        "Projeyi tamamladım", "Sözleşmeyi imzaladım", "Giriş kartımı unuttum", "Bugün evden çalışıyorum",
+        "Haftalık bülten yayında", "Yemeğe çıktım", "Kod incelemesi tamamlandı", "Müşteri onay verdi",
+        "Tebrikler!", "Yarınki uçak biletini aldım", "Toplantı linkini gönderdim", "Yeni sürüme geçtik",
+        "Dokümanları güncelledim", "Ofise vardım", "Öğleden sonra müsaitim"
+    ]
+    for i, rec in enumerate(recipients):
+        msg = messages[i % len(messages)]
+        pattern_type = i % 3
+        if pattern_type == 0:
+            q = f"{rec}'e '{msg}' mesajı gönder"
+        elif pattern_type == 1:
+            q = f"{rec}'e '{msg}' diye mesaj ilet"
+        else:
+            q = f"{rec}'e mesaj at: {msg}"
+        suite.append({
+            "query": q,
+            "expected_tool": "send_message",
+            "expected_args": {"recipient": rec, "message": msg},
+        })
+
+    # 4. set_alarm (50 test)
+    times = [
+        "06:00", "06:30", "07:00", "07:15", "07:30", "07:45", "08:00", "08:15", "08:30", "09:00",
+        "09:15", "09:30", "10:00", "10:30", "11:00", "11:45", "12:00", "12:30", "13:00", "13:30",
+        "14:00", "14:15", "14:45", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00",
+        "18:15", "18:30", "19:00", "19:30", "20:00", "20:15", "20:30", "21:00", "21:30", "22:00",
+        "22:15", "22:30", "23:00", "23:15", "23:30", "05:00", "05:30", "05:45", "06:15", "06:45"
+    ]
+    labels = [
+        "Uyanış", "Toplantı", "İlaç", "Ders", "Antrenman", "Uçuş", "Fırın", "Görüşme",
+        "Mola", "Kahvaltı", "Öğle Yemeği", "Servis", "Hatırlatıcı", "Sunum", "Vardiya"
+    ]
+    for i, t in enumerate(times):
+        if i % 3 == 0:
+            q = f"Saat {t}'a alarm kur"
+            args = {"time": t}
+        else:
+            lbl = labels[i % len(labels)]
+            if i % 2 == 0:
+                q = f"{t}'ye {lbl} alarmı kur"
+            else:
+                q = f"Sabah {t}'e {lbl} alarmı ayarla"
+            args = {"time": t, "label": lbl}
+        suite.append({
+            "query": q,
+            "expected_tool": "set_alarm",
+            "expected_args": args,
+        })
+
+    return suite
+
+
+DEFAULT_BENCHMARK_DATA = generate_comprehensive_benchmark_suite()
 
 
 @dataclass
@@ -299,10 +382,15 @@ def run_benchmark(
     results: List[TestCaseResult] = []
     per_tool: Dict[str, Dict[str, Any]] = {}
 
-    for case in test_cases:
+    total_test_count = len(test_cases)
+    for idx, case in enumerate(test_cases, 1):
         query = case["query"]
         expected_tool = case["expected_tool"]
         expected_args = case.get("expected_args", {})
+
+        pct = int((idx / total_test_count) * 100)
+        short_q = query if len(query) <= 35 else query[:32] + "..."
+        print(f"\r      [{idx}/{total_test_count}] (%{pct:<3}) Test ediliyor: {short_q:<36}", end="", flush=True)
 
         if expected_tool not in per_tool:
             per_tool[expected_tool] = {
@@ -351,6 +439,8 @@ def run_benchmark(
                 raw_response=res,
             )
         )
+
+    print(f"\r      [Tamamlandı] {total_test_count} test başarıyla tamamlandı!                   \n")
 
     # Genel metrikler
     total = len(results)

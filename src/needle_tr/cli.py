@@ -90,7 +90,12 @@ def cmd_benchmark(args):
     if not args.no_readme:
         readme_path = Path(args.readme)
         print(f"[3/3] 📝 Sonuçlar ve grafik {readme_path} dosyasına yazılıyor...")
-        update_readme_benchmark(summary, svg_relative_path=args.chart, readme_path=readme_path)
+        chart_url = (
+            "https://raw.githubusercontent.com/emrekayik/needle-tr/main/benchmark_results.svg"
+            if args.chart == "benchmark_results.svg"
+            else args.chart
+        )
+        update_readme_benchmark(summary, svg_relative_path=chart_url, readme_path=readme_path)
         print(f"      {readme_path} başarıyla güncellendi.")
 
     print("\n✨ Benchmark tamamlandı!")
