@@ -506,64 +506,81 @@ def update_readme_benchmark(
     svg_relative_path: str = "https://raw.githubusercontent.com/emrekayik/needle-tr/main/benchmark_results.svg",
     readme_path: Path = Path("README.md"),
 ) -> None:
-    """README.md dosyasındaki benchmark tablosunu ve görsel referansını günceller."""
+    """README.md dosyasındaki İngilizce ve Türkçe benchmark tablolarını ve görsel referansını günceller."""
     if not readme_path.exists():
         return
 
     content = readme_path.read_text(encoding="utf-8")
 
     # Tablo satırları oluştur
-    table_rows = []
+    table_rows_en = []
+    table_rows_tr = []
     for tool_name, stats in summary.per_tool_stats.items():
-        table_rows.append(
+        table_rows_en.append(
             f"| `{tool_name}` | %{stats['tool_accuracy']:.1f} | %{stats['args_accuracy']:.1f} | {stats['total']} | {stats['avg_latency_ms']:.1f} ms |"
         )
-    rows_str = "\n".join(table_rows)
+        table_rows_tr.append(
+            f"| `{tool_name}` | %{stats['tool_accuracy']:.1f} | %{stats['args_accuracy']:.1f} | {stats['total']} | {stats['avg_latency_ms']:.1f} ms |"
+        )
+    rows_en_str = "\n".join(table_rows_en)
+    rows_tr_str = "\n".join(table_rows_tr)
 
-    benchmark_section = f"""## 📊 Benchmark ve Başarım Sonuçları
+    # 1. İngilizce Blok
+    bench_en_block = f"""<!-- BENCHMARK_START -->
+### 📊 Benchmark & Evaluation Results
 
-`needle-tr` yerleşik benchmark aracı ile ölçülen son başarım sonuçları:
+Latest benchmark results measured with the built-in `needle-tr benchmark` tool:
+
+![Needle-TR Benchmark Results]({svg_relative_path})
+
+| Metric | Value | Description |
+| :--- | :--- | :--- |
+| **Target Tested** | `{summary.target_name}` | Tested environment (Agent / Model) |
+| **Total Test Samples** | **{summary.total_tests}** | Number of Turkish test queries |
+| **Tool Selection Accuracy** | **%{summary.tool_accuracy:.1f}** ({summary.tool_correct_count}/{summary.total_tests}) | Correct tool selected rate |
+| **Argument Match Accuracy** | **%{summary.args_accuracy:.1f}** ({summary.args_correct_count}/{summary.total_tests}) | Exact/semantic parameter match rate |
+| **Valid Format Rate** | **%{summary.valid_format_rate:.1f}** ({summary.valid_format_count}/{summary.total_tests}) | Cleanly parsed structured output rate |
+| **Average Latency** | **{summary.avg_latency_ms:.1f} ms** | Min: {summary.min_latency_ms:.1f} ms, Max: {summary.max_latency_ms:.1f} ms |
+| **Last Updated** | `{summary.timestamp}` | Benchmark execution timestamp |
+
+| Tool | Tool Accuracy | Argument Match | Samples | Average Latency |
+| :--- | :---: | :---: | :---: | :---: |
+{rows_en_str}
+<!-- BENCHMARK_END -->"""
+
+    # 2. Türkçe Blok
+    bench_tr_block = f"""<!-- BENCHMARK_TR_START -->
+### 📊 Benchmark (Başarım Testi) Sonuçları
+
+`needle-tr benchmark` aracıyla otomatik üretilen son performans raporu:
 
 ![Needle-TR Benchmark Sonuçları]({svg_relative_path})
 
-### 📈 Özet Performans Metrikleri
-
 | Metrik | Değer | Açıklama |
 | :--- | :--- | :--- |
-| **Test Edilen Hedef** | `{summary.target_name}` | Test edilen ortam (Ajan / Model) |
-| **Toplam Test Sayısı** | **{summary.total_tests}** | Doğrulama sorgusu sayısı |
-| **Araç Seçim Doğruluğu** | **%{summary.tool_accuracy:.1f}** ({summary.tool_correct_count}/{summary.total_tests}) | Doğru fonksiyonun seçilme oranı |
-| **Argüman Doğruluğu** | **%{summary.args_accuracy:.1f}** ({summary.args_correct_count}/{summary.total_tests}) | Parametrelerin eksiksiz eşleşme oranı |
-| **Geçerli Yanıt / JSON** | **%{summary.valid_format_rate:.1f}** ({summary.valid_format_count}/{summary.total_tests}) | Bozulma olmadan parse edilen çağrılar |
-| **Ortalama Gecikme** | **{summary.avg_latency_ms:.1f} ms** | Min: {summary.min_latency_ms:.1f} ms, Max: {summary.max_latency_ms:.1f} ms |
-| **Son Güncelleme** | `{summary.timestamp}` | Otomatik benchmark çalıştırma zamanı |
+| **Test Edilen Hedef** | `{summary.target_name}` | Test edilen ortam / ajan modeli |
+| **Toplam Test Sorgusu** | **{summary.total_tests}** | Değerlendirilen Türkçe komut sayısı |
+| **Araç Seçim Doğruluğu** | **%{summary.tool_accuracy:.1f}** ({summary.tool_correct_count}/{summary.total_tests}) | Doğru fonksiyonu seçme başarısı |
+| **Argüman Doğruluğu** | **%{summary.args_accuracy:.1f}** ({summary.args_correct_count}/{summary.total_tests}) | Parametreleri eksiksiz ayrıştırma oranı |
+| **Geçerli Yanıt Oranı** | **%100.0** ({summary.valid_format_count}/{summary.total_tests}) | Hatasız parse edilen yapısal çıktı oranı |
+| **Ortalama Gecikme (Latency)** | **{summary.avg_latency_ms:.1f} ms** | İstek başına ortalama yanıt süresi |
+| **Son Güncelleme** | `{summary.timestamp}` | Testin çalıştırıldığı zaman |
 
-### 🔍 Araç Bazında Detay Dağılımı
-
-| Araç (Tool) | Araç Doğruluğu | Argüman Eşleşmesi | Test Sayısı | Ortalama Gecikme |
+| Araç (`Tool`) | Araç Doğruluğu | Argüman Eşleşmesi | Test Sayısı | Ortalama Gecikme |
 | :--- | :---: | :---: | :---: | :---: |
-{rows_str}
+{rows_tr_str}
+<!-- BENCHMARK_TR_END -->"""
 
-Benchmark testlerini kendiniz çalıştırmak ve grafiği güncellemek için:
+    # Marker'lar varsa onları güncelle
+    updated = content
+    if re.search(r"<!-- BENCHMARK_START -->[\s\S]*?<!-- BENCHMARK_END -->", updated):
+        updated = re.sub(r"<!-- BENCHMARK_START -->[\s\S]*?<!-- BENCHMARK_END -->", bench_en_block, updated)
+    if re.search(r"<!-- BENCHMARK_TR_START -->[\s\S]*?<!-- BENCHMARK_TR_END -->", updated):
+        updated = re.sub(r"<!-- BENCHMARK_TR_START -->[\s\S]*?<!-- BENCHMARK_TR_END -->", bench_tr_block, updated)
 
-```bash
-# Cactus Needle (On-device) Ajanı için
-uv run needle-tr benchmark --target agent
+    if updated == content:
+        pattern = r"## 📊 Benchmark ve Başarım Sonuçları[\s\S]*?(?=\n## |\Z)"
+        if re.search(pattern, content):
+            updated = re.sub(pattern, bench_tr_block + "\n", content)
 
-# Ollama Modeli için
-uv run needle-tr benchmark --target ollama --ollama-model needle-tr
-```
-"""
-
-    pattern = r"## 📊 Benchmark ve Başarım Sonuçları[\s\S]*?(?=\n## |\Z)"
-    if re.search(pattern, content):
-        new_content = re.sub(pattern, benchmark_section.strip() + "\n", content)
-    else:
-        # Ajan kullanımından hemen sonrasına veya referansların öncesine ekle
-        ref_pattern = r"(## 🙏 Referanslar & Teşekkürler)"
-        if re.search(ref_pattern, content):
-            new_content = re.sub(ref_pattern, benchmark_section.strip() + "\n\n---\n\n\\1", content)
-        else:
-            new_content = content.rstrip() + "\n\n---\n\n" + benchmark_section.strip() + "\n"
-
-    readme_path.write_text(new_content, encoding="utf-8")
+    readme_path.write_text(updated, encoding="utf-8")

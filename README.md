@@ -1,134 +1,313 @@
 # needle-tr
 
-Türkçe Araç Çağırıcı (Tool Calling) ve Fine-Tuning Sistemi.
+<p align="center">
+  <b>Turkish Tool Calling & Fine-Tuning System | Türkçe Araç Çağırıcı ve İnce Ayar Sistemi</b><br>
+  Built on <a href="https://github.com/cactus-compute/needle">Cactus Compute Needle</a> (<code>cactus-needle</code>)
+</p>
 
-`needle-tr`, Türkçe dilinde fonksiyon / araç çağırma (function calling) yeteneklerine sahip yapay zeka modelleri geliştirmek, sentetik veri üretmek, LoRA ile fine-tuning yapmak ve Ollama üzerinde dağıtmak için tasarlanmış uçtan uca bir kütüphane ve CLI aracıdır.
-
-Proje, [Cactus Compute](https://github.com/cactus-compute/needle) tarafından geliştirilen hafif ve cihaz üstü (on-device) araç çağırma modeli **[Needle](https://github.com/cactus-compute/needle)** (`cactus-needle`) altyapısını temel alarak Türkçe dil desteği ve fine-tuning araçlarıyla genişletilmiştir.
-
----
-
-## 🚀 Özellikler
-
-- **Yerleşik Türkçe Araçlar:** Hava durumu sorgulama, mesaj gönderme, alarm kurma, matematiksel hesaplama gibi şablon araçlar.
-- **Sentetik Veri Üretici:** Tohum (seed) veriler ve isteğe bağlı yerel Ollama (`qwen2.5:7b` vb.) desteğiyle Türkçe veri seti genişletme (`data/train.jsonl`, `data/val.jsonl`).
-- **LoRA Fine-Tuning Desteği:** Hugging Face `transformers`, `peft` ve `trl` entegrasyonu ile hedef modelleri Türkçe araç çağırma formatına uyarlama.
-- **Ollama Dağıtımı:** Eğitilen veya mevcut modeller için otomatik `Modelfile` üretimi ve tek tıkla Ollama ortamına aktarım.
+<p align="center">
+  <a href="#-english"><b>English</b></a> &nbsp;|&nbsp; <a href="#-türkçe"><b>Türkçe</b></a>
+</p>
 
 ---
 
-## 📦 Kurulum
+<a name="-english"></a>
+## 🌐 English
 
-Bu proje [uv](https://github.com/astral-sh/uv) paket yöneticisi ile yönetilmektedir:
+### Overview
 
+`needle-tr` is an end-to-end Python framework and CLI tool designed to develop AI models with Turkish **tool calling** (function calling) capabilities, synthesize Turkish datasets, perform **fine-tuning** with LoRA (PEFT), and deploy models to Ollama and edge devices.
+
+The project builds upon and extends the lightweight on-device foundation model **[Needle](https://github.com/cactus-compute/needle)** (`cactus-needle`) by [Cactus Compute](https://github.com/cactus-compute/needle), bringing specialized Turkish language understanding, dataset pipelines, and training utilities.
+
+---
+
+### 🚀 Key Features
+
+- **Built-in Tools:** Predefined functions for weather queries, sending messages, setting alarms, and mathematical calculations.
+- **Synthetic Data Generator:** Dataset synthesis (`data/train.jsonl`, `data/val.jsonl`) using seed templates and local Ollama LLMs (`qwen2.5:7b`, etc.).
+- **LoRA Fine-Tuning Pipeline:** Direct integration with Hugging Face `transformers`, `peft`, and `trl` to train open-weights models (e.g., Qwen 2.5 Instruct) on Turkish tool-calling schemas.
+- **Ollama Modelfile Export:** Automatic generation of optimized `Modelfile` configs ready for `ollama create`.
+- **On-Device Agent:** Native Python agent execution powered by `cactus-needle` for fast, lightweight local inference.
+- **Automated Benchmark & Charts:** Built-in benchmarking suite measuring tool accuracy, argument matching, JSON validity, and latency, generating vector SVG reports.
+- **Release Automation:** Single-command SemVer bumping, git tagging, and GitHub Actions publishing to PyPI.
+
+---
+
+### 📦 Installation
+
+Install via `pip`:
 ```bash
-# Bağımlılıkları senkronize edin
+pip install needle-tr
+```
+
+Or clone and manage using [uv](https://github.com/astral-sh/uv):
+```bash
+git clone https://github.com/emrekayik/needle-tr.git
+cd needle-tr
 uv sync
 ```
 
 ---
 
-## 🛠️ CLI Kullanımı
+### 🛠️ CLI Usage
 
-Tüm süreç `needle-tr` komut satırı arayüzü ile yönetilebilir:
+All operations are accessible through the `needle-tr` CLI:
 
-### 1. Sentetik Veri Üretimi
-
+#### 1. Synthetic Data Generation
 ```bash
-# Yerel tohum verileri kullanarak
+# Using local seed data
 uv run needle-tr generate-data
 
-# Ollama ile zenginleştirilmiş veri üretimi
+# Augmented data generation using a local Ollama model
 uv run needle-tr generate-data --use-ollama --ollama-model qwen2.5:7b
 ```
 
-### 2. Fine-Tuning
-
+#### 2. Fine-Tuning
 ```bash
-# Doğrulama (Dry-run)
+# Dry-run validation (checks dataset and GPU settings without training)
 uv run needle-tr train --dry-run
 
-# Eğitim başlatma
+# Run LoRA training
 uv run needle-tr train --base-model Qwen/Qwen2.5-7B-Instruct --epochs 3
 ```
 
-### 3. Ollama Modelfile Dışa Aktarma
-
+#### 3. Export to Ollama
 ```bash
+# Generate Modelfile
 uv run needle-tr export-ollama --base-model qwen2.5:7b --model-name needle-tr
-```
 
-Ardından Ollama üzerinde modeli oluşturun ve çalıştırın:
-
-```bash
+# Register and test in Ollama
 ollama create needle-tr -f Modelfile
 ollama run needle-tr "25 * 4 hesapla"
 ```
 
----
-
-## 🐍 Python Ajan Kullanımı
-
-Cihaz üstü yerel ajan çalıştırma, [Cactus Compute Needle](https://github.com/cactus-compute/needle) (`cactus-needle`) kütüphanesini kullanır:
-
+#### 4. Automated Benchmark
 ```bash
-uv run needle-agent
+# Evaluate on-device Cactus Needle agent
+uv run needle-tr benchmark --suite
+
+# Evaluate Ollama model
+uv run needle-tr benchmark --target ollama --ollama-model needle-tr
 ```
 
-Veya Python kodunuz içerisinde:
+#### 5. Release & Publishing
+```bash
+# Bump patch version, commit, tag, and push to GitHub (triggers PyPI publish workflow)
+uv run needle-tr release patch --push
+```
+
+---
+
+### 🐍 Python Agent Usage
+
+Run on-device inference using the Python library:
 
 ```python
 from needle_tr import agent
 
-response = agent.run("İstanbul'da hava durumu nasıl?")
-print(response)
+# Turkish weather inquiry
+result = agent.run("İstanbul'da hava durumu nasıl?")
+print("Weather Result:", result["results"])
+
+# Mathematical computation
+calc_result = agent.run("25 * 4 hesapla")
+print("Calculation:", calc_result["results"])
+```
+
+Or run the pre-configured CLI agent:
+```bash
+uv run needle-agent
 ```
 
 ---
 
-## 📚 Detaylı Rehber
+<!-- BENCHMARK_START -->
+### 📊 Benchmark & Evaluation Results
 
-Ayrıntılı adımlar ve mimari açıklamaları için [FINETUNE_GUIDE.md](FINETUNE_GUIDE.md) dosyasına göz atabilirsiniz.
+Latest benchmark results measured with the built-in `needle-tr benchmark` tool:
 
----
+![Needle-TR Benchmark Results](https://raw.githubusercontent.com/emrekayik/needle-tr/main/benchmark_results.svg)
 
-## 📊 Benchmark ve Başarım Sonuçları
-
-`needle-tr` yerleşik benchmark aracı ile ölçülen son başarım sonuçları:
-
-![Needle-TR Benchmark Sonuçları](https://raw.githubusercontent.com/emrekayik/needle-tr/main/benchmark_results.svg)
-
-### 📈 Özet Performans Metrikleri
-
-| Metrik | Değer | Açıklama |
+| Metric | Value | Description |
 | :--- | :--- | :--- |
-| **Test Edilen Hedef** | `Cactus Needle (On-Device Agent)` | Test edilen ortam (Ajan / Model) |
-| **Toplam Test Sayısı** | **14** | Doğrulama sorgusu sayısı |
-| **Araç Seçim Doğruluğu** | **%92.9** (13/14) | Doğru fonksiyonun seçilme oranı |
-| **Argüman Doğruluğu** | **%78.6** (11/14) | Parametrelerin eksiksiz eşleşme oranı |
-| **Geçerli Yanıt / JSON** | **%100.0** (14/14) | Bozulma olmadan parse edilen çağrılar |
-| **Ortalama Gecikme** | **261.2 ms** | Min: 59.1 ms, Max: 931.0 ms |
-| **Son Güncelleme** | `2026-09-28 15:13:49` | Otomatik benchmark çalıştırma zamanı |
+| **Target Tested** | `Cactus Needle (On-Device Agent)` | Tested environment (Agent / Model) |
+| **Total Test Samples** | **14** | Number of Turkish test queries |
+| **Tool Selection Accuracy** | **%92.9** (13/14) | Correct tool selected rate |
+| **Argument Match Accuracy** | **%78.6** (11/14) | Exact/semantic parameter match rate |
+| **Valid Format Rate** | **%100.0** (14/14) | Cleanly parsed structured output rate |
+| **Average Latency** | **261.2 ms** | Min: 59.1 ms, Max: 931.0 ms |
+| **Last Updated** | `2026-09-28 15:13:49` | Benchmark execution timestamp |
 
-### 🔍 Araç Bazında Detay Dağılımı
-
-| Araç (Tool) | Araç Doğruluğu | Argüman Eşleşmesi | Test Sayısı | Ortalama Gecikme |
+| Tool | Tool Accuracy | Argument Match | Samples | Average Latency |
 | :--- | :---: | :---: | :---: | :---: |
 | `calculate` | %100.0 | %50.0 | 4 | 75.3 ms |
 | `get_weather` | %75.0 | %75.0 | 4 | 556.5 ms |
 | `send_message` | %100.0 | %100.0 | 3 | 214.8 ms |
 | `set_alarm` | %100.0 | %100.0 | 3 | 161.6 ms |
+<!-- BENCHMARK_END -->
 
-Benchmark testlerini kendiniz çalıştırmak ve grafiği güncellemek için:
+---
 
+### 📚 Detailed Documentation
+
+For step-by-step training architecture and dataset formatting, see [FINETUNE_GUIDE.md](FINETUNE_GUIDE.md).
+
+---
+
+### 🙏 References & Acknowledgements
+
+- **[Cactus Compute - Needle](https://github.com/cactus-compute/needle):** Lightweight on-device function and tool calling foundation library (`cactus-needle`).
+
+<br>
+
+---
+---
+
+<a name="-türkçe"></a>
+## 🇹🇷 Türkçe
+
+### Genel Bakış
+
+`needle-tr`, Türkçe dilinde **tool calling** (araç çağırma) ve **function calling** (fonksiyon çağırma) yeteneklerine sahip yapay zeka modelleri geliştirmek, **synthetic dataset** (sentetik veri kümesi) üretmek, LoRA yöntemiyle **fine-tuning** (modele ince ayar yapma) gerçekleştirmek ve modelleri Ollama üzerinde **deploy** etmek (dağıtmak/yayınlamak) için tasarlanmış uçtan uca bir Python kütüphanesi ve CLI (komut satırı) aracıdır.
+
+Proje, [Cactus Compute](https://github.com/cactus-compute/needle) tarafından geliştirilen ve doğrudan yerel donanımda çalışan **on-device** (cihaz üstü) araç çağırma modeli **[Needle](https://github.com/cactus-compute/needle)** (`cactus-needle`) altyapısını temel alarak Türkçe dil desteği, veri üretim bantları ve eğitim araçlarıyla genişletilmiştir.
+
+---
+
+### 🚀 Öne Çıkan Özellikler
+
+- **Yerleşik Türkçe Araçlar (`Built-in Tools`):** Hava durumu sorgulama, mesaj gönderme, alarm kurma ve matematiksel işlem şablon fonksiyonları.
+- **Sentetik Veri Üretici (`Synthetic Dataset Generator`):** **Seed** (tohum / başlangıç) veriler ve yerel Ollama modelleri (`qwen2.5:7b` vb.) desteğiyle Türkçe veri seti çoğaltma (`data/train.jsonl`, `data/val.jsonl`).
+- **LoRA İnce Ayar Desteği (`LoRA Fine-Tuning`):** Hugging Face `transformers`, `peft` ve `trl` kütüphaneleriyle açık ağırlıklı modelleri Türkçe araç şemasına uyarlama.
+- **Ollama Dağıtımı (`Ollama Deployment`):** Eğitilen modeller için optimize edilmiş `Modelfile` şablonunu otomatik üretme.
+- **Cihaz Üstü Ajan (`On-Device Agent`):** `cactus-needle` ile buluta bağımlı olmadan hızlı ve yerel **inference** (model çıkarımı / tahmin yürütme).
+- **Otomatik Başarım Testi (`Benchmark Suite`):** Araç seçim doğruluğu (`tool accuracy`), parametre eşleşmesi (`argument match`) ve **latency** (yanıt gecikme süresi) ölçen, vektörel SVG grafik üreten yerleşik test aracı.
+- **Sürüm Yönetimi (`Release Management`):** Tek komutla sürüm artırma (`version bump`), Git etiketi (`tag`) ve GitHub Actions üzerinden PyPI'ye otomatik **release** (sürüm yayınlama).
+
+---
+
+### 📦 Kurulum
+
+`pip` ile doğrudan kurun:
 ```bash
-# Cactus Needle (On-device) Ajanı için
-uv run needle-tr benchmark --target agent
+pip install needle-tr
+```
 
-# Ollama Modeli için
+Geliştirici ortamı için [uv](https://github.com/astral-sh/uv) ile senkronize edin:
+```bash
+git clone https://github.com/emrekayik/needle-tr.git
+cd needle-tr
+uv sync
+```
+
+---
+
+### 🛠️ CLI (Komut Satırı) Kullanımı
+
+Tüm işlemler `needle-tr` komut arayüzü ile yönetilebilir:
+
+#### 1. Sentetik Veri Üretimi (`Dataset Generation`)
+```bash
+# Yerel tohum verileri kullanarak temel veri seti üret
+uv run needle-tr generate-data
+
+# Yerel Ollama modeli kullanarak verileri çeşitlendir ve çoğalt
+uv run needle-tr generate-data --use-ollama --ollama-model qwen2.5:7b
+```
+
+#### 2. İnce Ayar Eğitimi (`Fine-Tuning`)
+```bash
+# Dry-run (eğitimi başlatmadan veri setini ve GPU ayarlarını ön doğrulama)
+uv run needle-tr train --dry-run
+
+# LoRA eğitimini başlat
+uv run needle-tr train --base-model Qwen/Qwen2.5-7B-Instruct --epochs 3
+```
+
+#### 3. Ollama Ortamına Aktarım (`Ollama Export`)
+```bash
+# Modelfile dosyasını oluştur
+uv run needle-tr export-ollama --base-model qwen2.5:7b --model-name needle-tr
+
+# Ollama üzerinde modeli derle ve çalıştır
+ollama create needle-tr -f Modelfile
+ollama run needle-tr "25 * 4 hesapla"
+```
+
+#### 4. Başarım ve Hız Testi (`Benchmark`)
+```bash
+# Cihaz üstü (on-device) Cactus Needle ajanını test et ve grafiği güncelle
+uv run needle-tr benchmark --suite
+
+# Ollama modelini test et
 uv run needle-tr benchmark --target ollama --ollama-model needle-tr
 ```
 
-## 🙏 Referanslar & Teşekkürler
+#### 5. Sürüm Yayınlama (`Release & Publish`)
+```bash
+# Patch sürümünü artır, commit et, git tag oluştur ve GitHub'a push et:
+uv run needle-tr release patch --push
+```
 
-- **[Cactus Compute - Needle](https://github.com/cactus-compute/needle):** Cihaz üzerinde (on-device) çalışan hafif ve verimli fonksiyon / araç çağırma kütüphanesi (`needle`).
+---
+
+### 🐍 Python Ajanı Kullanımı (`On-Device Inference`)
+
+Python kodunuz içerisinden yerel **tool calling** (araç çağırma) ajanını çalıştırma:
+
+```python
+from needle_tr import agent
+
+# Türkçe hava durumu sorgusu
+cevap = agent.run("İstanbul'da hava durumu nasıl?")
+print("Hava Durumu:", cevap["results"])
+
+# Matematiksel hesaplama sorgusu
+hesap = agent.run("25 * 4 hesapla")
+print("Hesaplama Sonucu:", hesap["results"])
+```
+
+Hazır terminal ajanıyla denemek için:
+```bash
+uv run needle-agent
+```
+
+---
+
+<!-- BENCHMARK_TR_START -->
+### 📊 Benchmark (Başarım Testi) Sonuçları
+
+`needle-tr benchmark` aracıyla otomatik üretilen son performans raporu:
+
+![Needle-TR Benchmark Sonuçları](https://raw.githubusercontent.com/emrekayik/needle-tr/main/benchmark_results.svg)
+
+| Metrik | Değer | Açıklama |
+| :--- | :--- | :--- |
+| **Test Edilen Hedef** | `Cactus Needle (On-Device Agent)` | Test edilen ortam / ajan modeli |
+| **Toplam Test Sorgusu** | **14** | Değerlendirilen Türkçe komut sayısı |
+| **Araç Seçim Doğruluğu** | **%92.9** (13/14) | Doğru fonksiyonu seçme başarısı |
+| **Argüman Doğruluğu** | **%78.6** (11/14) | Parametreleri eksiksiz ayrıştırma oranı |
+| **Geçerli Yanıt Oranı** | **%100.0** (14/14) | Hatasız parse edilen yapısal çıktı oranı |
+| **Ortalama Gecikme (Latency)** | **261.2 ms** | İstek başına ortalama yanıt süresi |
+| **Son Güncelleme** | `2026-09-28 15:13:49` | Testin çalıştırıldığı zaman |
+
+| Araç (`Tool`) | Araç Doğruluğu | Argüman Eşleşmesi | Test Sayısı | Ortalama Gecikme |
+| :--- | :---: | :---: | :---: | :---: |
+| `calculate` | %100.0 | %50.0 | 4 | 75.3 ms |
+| `get_weather` | %75.0 | %75.0 | 4 | 556.5 ms |
+| `send_message` | %100.0 | %100.0 | 3 | 214.8 ms |
+| `set_alarm` | %100.0 | %100.0 | 3 | 161.6 ms |
+<!-- BENCHMARK_TR_END -->
+
+---
+
+### 📚 Detaylı Rehber
+
+Model eğitimi mimarisi, veri formatları ve hiperparametreler için [FINETUNE_GUIDE.md](FINETUNE_GUIDE.md) dokümanını inceleyebilirsiniz.
+
+---
+
+### 🙏 Referanslar & Teşekkürler
+
+- **[Cactus Compute - Needle](https://github.com/cactus-compute/needle):** Cihaz üzerinde (**on-device**) çalışan hafif ve verimli fonksiyon / araç çağırma (**tool calling**) temel kütüphanesi (`cactus-needle`).
