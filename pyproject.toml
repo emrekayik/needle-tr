@@ -1,33 +1,19 @@
 [project]
 name = "needle-tr"
 version = "0.1.11"
-description = "Türkçe Araç Çağırıcı ve Fine-Tuning Sistemi"
+description = "Needle 3 Türkçe Araç Çağırıcı ve Fine-Tuning Sistemi (Cactus Compute)"
 readme = "README.md"
 authors = [
     { name = "emrekayik", email = "emrekayik1905@gmail.com" }
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "cactus-needle>=3.0.5",
+    "cactus-needle[train]>=3.0.5",
     "huggingface-hub>=0.20.0",
 ]
 
-[project.optional-dependencies]
-train = [
-    "datasets>=5.0.1",
-    "flax>=0.10.7",
-    "huggingface-hub>=0.28.0",
-    "jax>=0.6.2",
-    "optax>=0.2.8",
-    "peft>=0.21.0",
-    "safetensors>=0.8.0",
-    "sentencepiece>=0.2.2",
-    "torch>=2.14.0",
-    "transformers>=5.17.0",
-    "trl>=1.14.0",
-]
-
 [project.scripts]
+needle = "needle.cli:main"
 needle-tr = "needle_tr.cli:main"
 needle-agent = "needle_tr:main"
 

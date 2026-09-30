@@ -1,8 +1,9 @@
-"""Araç (Tool) tanımları ve şema yardımcıları."""
+"""Needle 3 Türkçe Araç (Tool) tanımları ve şema yardımcıları."""
+
+from __future__ import annotations
 
 import inspect
-import json
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 
 def get_weather(city: str) -> Dict[str, Any]:
@@ -37,32 +38,31 @@ ACTIVE_TOOLS: List[Callable[..., Any]] = [
 ]
 
 
-def get_tools_schema() -> List[Dict[str, Any]]:
-    """Tüm aktif araçların OpenAI/Ollama uyumlu JSON şemalarını üretir."""
-    type_map = {
-        str: "string",
-        int: "integer",
-        float: "number",
-        bool: "boolean",
-    }
-    schemas = []
-    for fn in ACTIVE_TOOLS:
-        sig = inspect.signature(fn)
-        props: Dict[str, Any] = {}
-        required: List[str] = []
-
-        for name, param in sig.parameters.items():
-            param_type = type_map.get(param.annotation, "string")
-            props[name] = {
-                "type": param_type,
-                "description": f"{name} parametresi",
-            }
-            if param.default is inspect.Parameter.empty:
-                required.append(name)
-
-        schemas.append({
-            "type": "function",
-            "function": {
+def get_needle_tools_schema(tools: Optional[List[Callable[..., Any]]] = None) -> List[Dict[str, Any]]:
+    """Needle 3 modelinin doğrudan kabul ettiği araç şemalarını üretir."""
+    target_tools = tools if tools is not None else ACTIVE_TOOLS
+    try:
+        import needle
+        return [needle.build_schema(fn) for fn in target_tools]
+    except Exception:
+        # needle yüklü değilse fallback şema oluşturucu
+        type_map = {
+            str: "string",
+            int: "integer",
+            float: "number",
+            bool: "boolean",
+        }
+        schemas = []
+        for fn in target_tools:
+            sig = inspect.signature(fn)
+            props: Dict[str, Any] = {}
+            required: List[str] = []
+            for name, param in sig.parameters.items():
+                param_type = type_map.get(param.annotation, "string")
+                props[name] = {"type": param_type}
+                if param.default is inspect.Parameter.empty:
+                    required.append(name)
+            schemas.append({
                 "name": fn.__name__,
                 "description": (fn.__doc__ or "").strip(),
                 "parameters": {
@@ -70,6 +70,22 @@ def get_tools_schema() -> List[Dict[str, Any]]:
                     "properties": props,
                     "required": required,
                 },
-            },
-        })
-    return schemas
+            })
+        return schemas
+
+
+def get_tools_schema(
+    tools: Optional[List[Callable[..., Any]]] = None,
+    format: str = "needle",
+) -> List[Dict[str, Any]]:
+    """Tüm aktif araçların şemalarını üretir (Needle veya OpenAI formatında)."""
+    needle_schemas = get_needle_tools_schema(tools)
+    if format == "openai":
+        return [
+            {
+                "type": "function",
+                "function": s,
+            }
+            for s in needle_schemas
+        ]
+    return needle_schemas

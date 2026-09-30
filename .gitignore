@@ -41,6 +41,7 @@ venv.bak/
 
 # Model weights, LoRA adapters & Checkpoints
 models/
+checkpoints/
 checkpoint-*/
 *.gguf
 *.safetensors
@@ -48,6 +49,12 @@ checkpoint-*/
 *.pt
 *.pth
 *.cact
+
+# Generated training data
+data/
+
+# Scratch / temp files
+scratch/
 
 # Training logs & tracking
 wandb/

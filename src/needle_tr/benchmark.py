@@ -242,6 +242,21 @@ def load_test_cases(dataset_path: Optional[Path] = None, use_builtin_suite: bool
                             "expected_tool": parsed.get("name", ""),
                             "expected_args": parsed.get("arguments", {}),
                         })
+                    elif "query" in obj and "answers" in obj:
+                        answers = obj.get("answers", [])
+                        if answers and isinstance(answers, list) and len(answers) > 0:
+                            first_ans = answers[0]
+                            cases.append({
+                                "query": obj["query"],
+                                "expected_tool": first_ans.get("name", ""),
+                                "expected_args": first_ans.get("arguments", {}),
+                            })
+                        else:
+                            cases.append({
+                                "query": obj["query"],
+                                "expected_tool": None,
+                                "expected_args": {},
+                            })
                     elif "query" in obj and "tool" in obj:
                         cases.append({
                             "query": obj["query"],

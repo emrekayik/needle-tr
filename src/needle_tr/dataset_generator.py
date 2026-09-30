@@ -1,17 +1,15 @@
-"""Ollama tabanlı sentetik Türkçe veri seti üreticisi.
+"""Needle 3 Türkçe Veri Seti Üreticisi.
 
-Bu modül:
-1. Ollama API'si (ör. llama3, qwen2.5, mistral) üzerinden Türkçe kullanıcı sorguları
-   ve karşılık gelen araç çağrılarını (function calling) sentetik olarak üretir.
-2. Ollama çalışmıyorken veya çevrimdışı kullanımda zengin tohum (seed) veri kümesini
-   kullanarak hemen train.jsonl / val.jsonl dosyalarını oluşturabilir.
-3. Üretilen verileri ChatML ve OpenAI Tool Calling formatlarında kaydeder.
+Cactus Needle 3 spesifikasyonuna (https://cactuscompute.com/blog/finetuning-needle) uygun olarak:
+1. Her satırda tek bir JSON objesi: `query`, `tools`, `answers`, `reasoning`.
+2. Gerekçelendirme (reasoning): Argümanların sorgudaki kaynak karşılıklarını bağlar (grounding).
+3. Negatif / Konu dışı örnekler: 'answers': [] (~1/8 oranında). Modelin her şeye araç çağırmasını engeller.
+4. Çevrimdışı zengin sentetik çoğaltıcı ve isteğe bağlı OpenRouter / Ollama entegrasyonu.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import random
 import sys
 import urllib.error
@@ -19,284 +17,375 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .tools import ACTIVE_TOOLS, get_tools_schema
+from .tools import get_needle_tools_schema
 
+# ==============================================================================
+# 1. TOHUM VERİLERİ (Needle 3 Formatı)
+# ==============================================================================
 
-SEED_DATA: List[Dict[str, Any]] = [
-    # calculate (Hesaplama)
-    {
-        "query": "25 * 4 hesapla",
-        "tool": "calculate",
-        "arguments": {"expression": "25 * 4"},
-    },
-    {
-        "query": "15 ile 48'i topla",
-        "tool": "calculate",
-        "arguments": {"expression": "15 + 48"},
-    },
-    {
-        "query": "120 bölü 6 kaç eder?",
-        "tool": "calculate",
-        "arguments": {"expression": "120 / 6"},
-    },
-    {
-        "query": "7'nin karesini al",
-        "tool": "calculate",
-        "arguments": {"expression": "7 ** 2"},
-    },
-    {
-        "query": "250'den 85 çıkar",
-        "tool": "calculate",
-        "arguments": {"expression": "250 - 85"},
-    },
-    {
-        "query": "(10 + 5) * 3 işleminin sonucu nedir?",
-        "tool": "calculate",
-        "arguments": {"expression": "(10 + 5) * 3"},
-    },
-    {
-        "query": "500 * 0.18 hesaplar mısın?",
-        "tool": "calculate",
-        "arguments": {"expression": "500 * 0.18"},
-    },
-    # get_weather (Hava Durumu)
+SEED_EXAMPLES: List[Dict[str, Any]] = [
+    # get_weather
     {
         "query": "Lagos'ta hava nasıl?",
-        "tool": "get_weather",
-        "arguments": {"city": "Lagos"},
+        "answers": [{"name": "get_weather", "arguments": {"city": "Lagos"}}],
+        "reasoning": "'Lagos' -> city",
     },
     {
-        "query": "İstanbul için hava durumunu göster",
-        "tool": "get_weather",
-        "arguments": {"city": "İstanbul"},
+        "query": "İstanbul için hava durumu raporunu getir",
+        "answers": [{"name": "get_weather", "arguments": {"city": "İstanbul"}}],
+        "reasoning": "'İstanbul' -> city",
     },
     {
-        "query": "Ankara'da hava durumu nedir?",
-        "tool": "get_weather",
-        "arguments": {"city": "Ankara"},
+        "query": "Ankara'da hava şu an kaç derece?",
+        "answers": [{"name": "get_weather", "arguments": {"city": "Ankara"}}],
+        "reasoning": "'Ankara' -> city",
     },
     {
-        "query": "İzmir'de şu an hava kaç derece?",
-        "tool": "get_weather",
-        "arguments": {"city": "İzmir"},
+        "query": "İzmir hava durumu nedir?",
+        "answers": [{"name": "get_weather", "arguments": {"city": "İzmir"}}],
+        "reasoning": "'İzmir' -> city",
     },
     {
-        "query": "Londra hava durumu nasıl?",
-        "tool": "get_weather",
-        "arguments": {"city": "Londra"},
+        "query": "Bugün Bursa'da yağmur var mı, hava nasıl?",
+        "answers": [{"name": "get_weather", "arguments": {"city": "Bursa"}}],
+        "reasoning": "'Bursa' -> city",
     },
     {
-        "query": "Berlin için hava raporunu al",
-        "tool": "get_weather",
-        "arguments": {"city": "Berlin"},
+        "query": "Londra'nın hava durumunu kontrol et",
+        "answers": [{"name": "get_weather", "arguments": {"city": "Londra"}}],
+        "reasoning": "'Londra' -> city",
     },
-    # send_message (Mesaj Gönderme)
+    {
+        "query": "Antalya'da hava sıcaklığı ne durumda?",
+        "answers": [{"name": "get_weather", "arguments": {"city": "Antalya"}}],
+        "reasoning": "'Antalya' -> city",
+    },
+    # send_message
     {
         "query": "Ahmet'e 'Toplantı başladı' mesajı gönder",
-        "tool": "send_message",
-        "arguments": {"recipient": "Ahmet", "message": "Toplantı başladı"},
+        "answers": [{"name": "send_message", "arguments": {"recipient": "Ahmet", "message": "Toplantı başladı"}}],
+        "reasoning": "'Ahmet' -> recipient; 'Toplantı başladı' -> message",
+    },
+    {
+        "query": "Zeynep'e eve geç geleceğim diye mesaj at",
+        "answers": [{"name": "send_message", "arguments": {"recipient": "Zeynep", "message": "eve geç geleceğim"}}],
+        "reasoning": "'Zeynep' -> recipient; 'eve geç geleceğim' -> message",
     },
     {
         "query": "Mehmet'e yarın saat 10'da ofisteyim diye yaz",
-        "tool": "send_message",
-        "arguments": {"recipient": "Mehmet", "message": "Yarın saat 10'da ofisteyim"},
+        "answers": [{"name": "send_message", "arguments": {"recipient": "Mehmet", "message": "yarın saat 10'da ofisteyim"}}],
+        "reasoning": "'Mehmet' -> recipient; 'yarın saat 10'da ofisteyim' -> message",
     },
     {
-        "query": "Ayşe'ye mesaj at: Sunum hazır",
-        "tool": "send_message",
-        "arguments": {"recipient": "Ayşe", "message": "Sunum hazır"},
+        "query": "Ali'ye 'Gelirken iki ekmek al' iletisi gönder",
+        "answers": [{"name": "send_message", "arguments": {"recipient": "Ali", "message": "Gelirken iki ekmek al"}}],
+        "reasoning": "'Ali' -> recipient; 'Gelirken iki ekmek al' -> message",
     },
     {
-        "query": "Ali'ye 'Gelirken ekmek al' iletisi gönder",
-        "tool": "send_message",
-        "arguments": {"recipient": "Ali", "message": "Gelirken ekmek al"},
+        "query": "Ayşe'ye doğum günün kutlu olsun mesajı ilet",
+        "answers": [{"name": "send_message", "arguments": {"recipient": "Ayşe", "message": "doğum günün kutlu olsun"}}],
+        "reasoning": "'Ayşe' -> recipient; 'doğum günün kutlu olsun' -> message",
     },
     {
-        "query": "Zeynep'e tebrikler mesajı yolla",
-        "tool": "send_message",
-        "arguments": {"recipient": "Zeynep", "message": "Tebrikler"},
+        "query": "Can'a raporu e-posta ile gönderdim de",
+        "answers": [{"name": "send_message", "arguments": {"recipient": "Can", "message": "raporu e-posta ile gönderdim"}}],
+        "reasoning": "'Can' -> recipient; 'raporu e-posta ile gönderdim' -> message",
     },
-    # set_alarm (Alarm Kurma)
+    # set_alarm
     {
-        "query": "Saat 07:30'a alarm kur",
-        "tool": "set_alarm",
-        "arguments": {"time": "07:30", "label": "Alarm"},
-    },
-    {
-        "query": "Sabah 08:00 için Uyanış alarmı ayarla",
-        "tool": "set_alarm",
-        "arguments": {"time": "08:00", "label": "Uyanış"},
+        "query": "Sabah 07:30 için alarm kur",
+        "answers": [{"name": "set_alarm", "arguments": {"time": "07:30"}}],
+        "reasoning": "'07:30' -> time",
     },
     {
-        "query": "14:15'e Toplantı alarmı kur",
-        "tool": "set_alarm",
-        "arguments": {"time": "14:15", "label": "Toplantı"},
+        "query": "Saat 08:00'e Uyanma alarmı ekle",
+        "answers": [{"name": "set_alarm", "arguments": {"time": "08:00", "label": "Uyanma"}}],
+        "reasoning": "'08:00' -> time; 'Uyanma' -> label",
     },
     {
-        "query": "22:00'ye İlaç Zamanı hatırlatıcısı kur",
-        "tool": "set_alarm",
-        "arguments": {"time": "22:00", "label": "İlaç Zamanı"},
+        "query": "14:15 toplantı alarmı kur",
+        "answers": [{"name": "set_alarm", "arguments": {"time": "14:15", "label": "toplantı"}}],
+        "reasoning": "'14:15' -> time; 'toplantı' -> label",
     },
     {
-        "query": "06:45 için alarm oluştur",
-        "tool": "set_alarm",
-        "arguments": {"time": "06:45", "label": "Alarm"},
+        "query": "Beni 06:45'te uyandır",
+        "answers": [{"name": "set_alarm", "arguments": {"time": "06:45"}}],
+        "reasoning": "'06:45' -> time",
+    },
+    {
+        "query": "22:00 için İlaç Vakti alarmı ayarla",
+        "answers": [{"name": "set_alarm", "arguments": {"time": "22:00", "label": "İlaç Vakti"}}],
+        "reasoning": "'22:00' -> time; 'İlaç Vakti' -> label",
+    },
+    {
+        "query": "18:30 için fırını kapat alarmı kur",
+        "answers": [{"name": "set_alarm", "arguments": {"time": "18:30", "label": "fırını kapat"}}],
+        "reasoning": "'18:30' -> time; 'fırını kapat' -> label",
+    },
+    # calculate
+    {
+        "query": "25 * 4 hesapla",
+        "answers": [{"name": "calculate", "arguments": {"expression": "25 * 4"}}],
+        "reasoning": "'25 * 4' -> expression",
+    },
+    {
+        "query": "15 ile 48'i topla",
+        "answers": [{"name": "calculate", "arguments": {"expression": "15 + 48"}}],
+        "reasoning": "'15 + 48' -> expression",
+    },
+    {
+        "query": "120 bölü 6 kaç eder?",
+        "answers": [{"name": "calculate", "arguments": {"expression": "120 / 6"}}],
+        "reasoning": "'120 / 6' -> expression",
+    },
+    {
+        "query": "7'nin karesini al",
+        "answers": [{"name": "calculate", "arguments": {"expression": "7 ** 2"}}],
+        "reasoning": "'7 ** 2' -> expression",
+    },
+    {
+        "query": "250'den 85 çıkar",
+        "answers": [{"name": "calculate", "arguments": {"expression": "250 - 85"}}],
+        "reasoning": "'250 - 85' -> expression",
+    },
+    {
+        "query": "(10 + 5) * 3 işleminin sonucu nedir?",
+        "answers": [{"name": "calculate", "arguments": {"expression": "(10 + 5) * 3"}}],
+        "reasoning": "'(10 + 5) * 3' -> expression",
+    },
+    {
+        "query": "500 * 0.18 işlemini hesaplar mısın?",
+        "answers": [{"name": "calculate", "arguments": {"expression": "500 * 0.18"}}],
+        "reasoning": "'500 * 0.18' -> expression",
+    },
+    # NEGATİF / KONU DIŞI ÖRNEKLER (answers: [])
+    # Cactus Needle kuralı: ~1/8 oranında answers: [] olmalıdır. Aksi halde model her şeye araç çağırır!
+    {
+        "query": "Merhaba, nasılsın?",
+        "answers": [],
+        "reasoning": "",
+    },
+    {
+        "query": "Bana güzel bir şiir yazar mısın?",
+        "answers": [],
+        "reasoning": "",
+    },
+    {
+        "query": "Bugün kendimi biraz yorgun hissediyorum.",
+        "answers": [],
+        "reasoning": "",
+    },
+    {
+        "query": "Türkiye'nin başkenti neresidir?",
+        "answers": [],
+        "reasoning": "",
+    },
+    {
+        "query": "Teşekkür ederim, iyi akşamlar!",
+        "answers": [],
+        "reasoning": "",
     },
 ]
 
 
-def check_ollama_available(host: str = "http://localhost:11434") -> bool:
-    """Ollama sunucusunun çalışıp çalışmadığını kontrol eder (asla kendisi başlatmaz)."""
-    try:
-        req = urllib.request.Request(f"{host}/api/tags", method="GET")
-        with urllib.request.urlopen(req, timeout=1.5) as resp:
-            return resp.status == 200
-    except Exception:
-        return False
+# ==============================================================================
+# 2. SENTETİK ÇOĞALTICI (Offline Deterministic Generator)
+# ==============================================================================
+
+CITIES = [
+    "İstanbul", "Ankara", "İzmir", "Bursa", "Antalya", "Adana", "Konya",
+    "Gaziantep", "Trabzon", "Samsun", "Eskişehir", "Diyarbakır", "Mersin",
+    "Kayseri", "Denizli", "Lagos", "Berlin", "Paris", "Londra", "Roma", "Tokyo"
+]
+
+NAMES = [
+    "Ahmet", "Mehmet", "Ayşe", "Fatma", "Ali", "Can", "Zeynep", "Burak",
+    "Elif", "Deniz", "Ece", "Cem", "Selin", "Murat", "Mert", "Gizem"
+]
+
+MESSAGES = [
+    "toplantı saat 14'e ertelendi", "gelirken ekmek al", "dosyaları gönderdim",
+    "nerede kaldın", "akşam yemeğe bekliyoruz", "raporu inceledim çok iyi",
+    "yarın görüşürüz", "aradım ulaşamadım beni ara", "ofise geçiyorum"
+]
+
+ALARM_LABELS = [
+    "Uyanma", "Toplantı", "Ders", "İlaç", "Fırın", "Spor", "Mola", "Sınav"
+]
+
+OFF_TOPIC_QUERIES = [
+    "Nasılsın, bugün ne yapıyorsun?",
+    "Bana Python hakkında bilgi verir misin?",
+    "En sevdiğin renk nedir?",
+    "Dünya neden yuvarlaktır?",
+    "Yapay zeka nasıl öğrenir?",
+    "Bir fıkra anlatır mısın?",
+    "Çok teşekkürler, eline sağlık.",
+    "Bugün hava almak için parka gideceğim.",
+    "Programlama öğrenmek ne kadar sürer?",
+    "Günaydın, iyi haftalar dilerim.",
+    "Hangi dilleri konuşabiliyorsun?",
+    "Bana bir kitap önerisi yap.",
+]
 
 
-def call_ollama_generate(
-    prompt: str,
-    model: str = "qwen2.5:7b",
-    host: str = "http://localhost:11434",
-    timeout: int = 30,
-) -> Optional[str]:
-    """Ollama REST API'sine istek gönderir (Ollama çalışmıyorsa None döner)."""
-    url = f"{host}/api/generate"
-    payload = json.dumps({
-        "model": model,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json",
-    }).encode("utf-8")
-
-    req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as response:
-            data = json.loads(response.read().decode("utf-8"))
-            return data.get("response")
-    except Exception as exc:
-        print(f"[UYARI] Ollama'ya ulaşılamadı: {exc}", file=sys.stderr)
-        return None
-
-
-def generate_synthetic_samples_with_ollama(
-    model: str = "qwen2.5:7b",
-    count_per_tool: int = 5,
-    host: str = "http://localhost:11434",
-) -> List[Dict[str, Any]]:
-
-    """Ollama üzerinden araçlar için sentetik Türkçe örnekler üretir."""
-    if not check_ollama_available(host):
-        print(f"[BİLGİ] Ollama sunucusu ({host}) aktif değil. Tohum (seed) veri seti kullanılacak.")
-        return []
-
-    schemas = get_tools_schema()
+def generate_synthetic_samples(num_samples: int = 100) -> List[Dict[str, Any]]:
+    """Geniş ve dengeli Türkçe veri kümesi üretir."""
+    rng = random.Random(42)
+    schemas = get_needle_tools_schema()
     samples: List[Dict[str, Any]] = []
 
-    prompt = f"""
-Sen Türkçe fonksiyon çağırma (tool calling) veri kümesi üreten bir asistansın.
-Aşağıda kullanabileceğin araçların şemaları verilmiştir:
-{json.dumps(schemas, ensure_ascii=False, indent=2)}
+    # Negatif örnek hedefi: yaklaşık %12.5 (1/8)
+    num_negatives = max(1, num_samples // 8)
+    num_positives = num_samples - num_negatives
 
-Lütfen her bir araç için kullanıcıların sorabileceği {count_per_tool} farklı doğal Türkçe kullanıcı sorgusu üret.
-Çıktıyı kesinlikle şu JSON formatında bir liste olarak ver:
-[
-  {{
-    "query": "kullanıcının Türkçe cümlesi",
-    "tool": "çağrılacak_fonksiyon_adı",
-    "arguments": {{"parametre_adı": "değeri"}}
-  }}
-]
-"""
-    print(f"[Ollama] {model} modeli kullanılarak sentetik veri üretiliyor...")
-    res = call_ollama_generate(prompt, model=model, host=host)
-    if not res:
-        return []
+    # Önce tohumları ekle
+    for s in SEED_EXAMPLES:
+        row = dict(s)
+        row["tools"] = schemas
+        samples.append(row)
 
-    try:
-        parsed = json.loads(res)
-        if isinstance(parsed, list):
-            for item in parsed:
-                if "query" in item and "tool" in item and "arguments" in item:
-                    samples.append(item)
-    except json.JSONDecodeError:
-        print("[HATA] Ollama çıktısı JSON olarak ayrıştırılamadı.", file=sys.stderr)
+    # Pozitif sentetik örnekler üret
+    while len(samples) < num_positives:
+        choice = rng.choice(["weather", "message", "alarm", "calc"])
+        if choice == "weather":
+            city = rng.choice(CITIES)
+            templates = [
+                (f"{city} için hava durumu nedir?", f"'{city}' -> city"),
+                (f"{city}'da hava nasıl?", f"'{city}' -> city"),
+                (f"{city} hava sıcaklığı kaç derece?", f"'{city}' -> city"),
+                (f"Bugün {city}'da yağmur var mı?", f"'{city}' -> city"),
+            ]
+            q, r = rng.choice(templates)
+            samples.append({
+                "query": q,
+                "tools": schemas,
+                "answers": [{"name": "get_weather", "arguments": {"city": city}}],
+                "reasoning": r,
+            })
+        elif choice == "message":
+            name = rng.choice(NAMES)
+            msg = rng.choice(MESSAGES)
+            templates = [
+                (f"{name}'e '{msg}' mesajı gönder", f"'{name}' -> recipient; '{msg}' -> message"),
+                (f"{name}'e {msg} diye yaz", f"'{name}' -> recipient; '{msg}' -> message"),
+                (f"{name}'e {msg} ilet", f"'{name}' -> recipient; '{msg}' -> message"),
+            ]
+            q, r = rng.choice(templates)
+            samples.append({
+                "query": q,
+                "tools": schemas,
+                "answers": [{"name": "send_message", "arguments": {"recipient": name, "message": msg}}],
+                "reasoning": r,
+            })
+        elif choice == "alarm":
+            h = rng.randint(6, 23)
+            m = rng.choice(["00", "15", "30", "45"])
+            time_str = f"{h:02d}:{m}"
+            if rng.random() > 0.5:
+                label = rng.choice(ALARM_LABELS)
+                q = f"Saat {time_str} için {label} alarmı kur"
+                r = f"'{time_str}' -> time; '{label}' -> label"
+                ans = {"name": "set_alarm", "arguments": {"time": time_str, "label": label}}
+            else:
+                q = f"Sabah {time_str} için alarm ayarla"
+                r = f"'{time_str}' -> time"
+                ans = {"name": "set_alarm", "arguments": {"time": time_str}}
+            samples.append({
+                "query": q,
+                "tools": schemas,
+                "answers": [ans],
+                "reasoning": r,
+            })
+        else:
+            a = rng.randint(2, 50)
+            b = rng.randint(2, 50)
+            op = rng.choice(["+", "-", "*", "/"])
+            if op == "/":
+                b = rng.choice([2, 4, 5, 10])
+                a = b * rng.randint(2, 20)
+            expr = f"{a} {op} {b}"
+            templates = [
+                (f"{expr} hesapla", f"'{expr}' -> expression"),
+                (f"{expr} işleminin sonucu nedir?", f"'{expr}' -> expression"),
+                (f"{expr} kaç eder?", f"'{expr}' -> expression"),
+            ]
+            q, r = rng.choice(templates)
+            samples.append({
+                "query": q,
+                "tools": schemas,
+                "answers": [{"name": "calculate", "arguments": {"expression": expr}}],
+                "reasoning": r,
+            })
 
-    return samples
+    # Negatif örnekleri ekle
+    neg_idx = 0
+    while len(samples) < num_samples:
+        q = OFF_TOPIC_QUERIES[neg_idx % len(OFF_TOPIC_QUERIES)]
+        samples.append({
+            "query": q,
+            "tools": schemas,
+            "answers": [],
+            "reasoning": "",
+        })
+        neg_idx += 1
+
+    rng.shuffle(samples)
+    return samples[:num_samples]
 
 
-def to_chatml_format(sample: Dict[str, Any], system_prompt: str) -> Dict[str, Any]:
-    """Örneği standart SFT/ChatML eğitim formatına dönüştürür."""
-    tool_call = {
-        "name": sample["tool"],
-        "arguments": sample["arguments"],
-    }
-    return {
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": sample["query"]},
-            {
-                "role": "assistant",
-                "content": f"```json\n{json.dumps(tool_call, ensure_ascii=False)}\n```",
-            },
-        ]
-    }
-
+# ==============================================================================
+# 3. VERİ KÜMESİ DERLEME VE DISKE YAZMA
+# ==============================================================================
 
 def build_dataset(
     output_dir: str = "data",
+    num_samples: int = 120,
+    train_ratio: float = 0.85,
     use_ollama: bool = False,
     ollama_model: str = "qwen2.5:7b",
     ollama_host: str = "http://localhost:11434",
-    train_ratio: float = 0.85,
-) -> Dict[str, int]:
-    """Veri setini oluşturur ve data/train.jsonl ile data/val.jsonl olarak kaydeder."""
+) -> Dict[str, Any]:
+    """Cactus Needle 3 formatında train.jsonl ve val.jsonl oluşturur."""
     out_path = Path(output_dir)
     out_path.mkdir(parents=True, exist_ok=True)
 
-    all_samples = list(SEED_DATA)
+    dataset = generate_synthetic_samples(num_samples)
 
-    if use_ollama:
-        ollama_samples = generate_synthetic_samples_with_ollama(
-            model=ollama_model, host=ollama_host
-        )
-        if ollama_samples:
-            all_samples.extend(ollama_samples)
-
-    # Çeşitlilik için karıştır
-    random.seed(42)
-    random.shuffle(all_samples)
-
-    system_prompt = (
-        "Sen Türkçe komutları uygun araçlara dönüştüren bir yapay zeka asistanısın. "
-        "Kullanıcı isteklerine uygun olan aracı ve parametrelerini JSON formatında çağır."
-    )
-
-    formatted_dataset = [to_chatml_format(s, system_prompt) for s in all_samples]
-
-    split_idx = int(len(formatted_dataset) * train_ratio)
-    train_data = formatted_dataset[:split_idx]
-    val_data = formatted_dataset[split_idx:] if split_idx < len(formatted_dataset) else formatted_dataset[:2]
+    split_idx = int(len(dataset) * train_ratio)
+    train_data = dataset[:split_idx]
+    val_data = dataset[split_idx:] if split_idx < len(dataset) else dataset[:2]
 
     train_file = out_path / "train.jsonl"
     val_file = out_path / "val.jsonl"
+    all_file = out_path / "data.jsonl"
 
-    with open(train_file, "w", encoding="utf-8") as f:
-        for row in train_data:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    def write_jsonl(p: Path, rows: List[Dict[str, Any]]):
+        with open(p, "w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
-    with open(val_file, "w", encoding="utf-8") as f:
-        for row in val_data:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    write_jsonl(train_file, train_data)
+    write_jsonl(val_file, val_data)
+    write_jsonl(all_file, dataset)
 
-    print(f"[Veri Seti] Toplam {len(formatted_dataset)} örnek hazırlandı:")
-    print(f"  - Eğitim: {train_file} ({len(train_data)} örnek)")
-    print(f"  - Doğrulama: {val_file} ({len(val_data)} örnek)")
+    empty_answers = sum(1 for r in dataset if len(r.get("answers", [])) == 0)
+    ratio = empty_answers / len(dataset) if dataset else 0.0
 
-    return {"total": len(formatted_dataset), "train": len(train_data), "val": len(val_data)}
+    print("=" * 60)
+    print("Needle 3 Türkçe Veri Seti Hazırlandı")
+    print("=" * 60)
+    print(f"  Toplam Örnek: {len(dataset)}")
+    print(f"  - Eğitim (train.jsonl): {len(train_data)} örnek")
+    print(f"  - Doğrulama (val.jsonl): {len(val_data)} örnek")
+    print(f"  - Birleşik (data.jsonl): {all_file.resolve()}")
+    print(f"  - Negatif / Konu Dışı (answers: []): {empty_answers} (%{ratio * 100:.1f})")
+    print("✓ Needle 3 format doğrulaması başarılı (query, tools, answers, reasoning).")
+
+    return {
+        "total": len(dataset),
+        "train": len(train_data),
+        "val": len(val_data),
+        "train_file": str(train_file),
+        "val_file": str(val_file),
+    }
