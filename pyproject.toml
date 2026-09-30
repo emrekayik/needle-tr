@@ -1,6 +1,6 @@
 [project]
 name = "needle-tr"
-version = "0.3.0"
+version = "0.3.1"
 description = "Needle 3 Türkçe Araç Çağırıcı ve Fine-Tuning Sistemi (Cactus Compute)"
 readme = "README.md"
 authors = [
