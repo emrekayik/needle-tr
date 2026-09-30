@@ -26,6 +26,14 @@ def cmd_generate_data(args):
 
 def cmd_train(args):
     """Needle 3 LoRA Fine-Tuning ve model derleme akışını çalıştırır."""
+    if args.quick:
+        # Fast smoke-test profile; explicit CLI values still take precedence.
+        args.epochs = 1 if args.epochs == 10 else args.epochs
+        args.batch_size = 32 if args.batch_size == 16 else args.batch_size
+        args.max_len = 512 if args.max_len == 1024 else args.max_len
+        args.lora_rank = 8 if args.lora_rank == 16 else args.lora_rank
+        args.layers = 2 if args.layers == 20 else args.layers
+
     cfg = TrainingConfig(
         data_path=args.data,
         output_dir=args.output_dir,
@@ -182,6 +190,11 @@ def main():
         p_train.add_argument("--layers", type=int, default=20, help="Alt ağ katman sayısı (2..20, varsayılan: 20)")
         p_train.add_argument("--platform", default=None, help="Hedef platform (macos-arm64, linux-arm64 vb.)")
         p_train.add_argument("--output-dir", default="models", help="Model kayıt dizini")
+        p_train.add_argument(
+            "--quick",
+            action="store_true",
+            help="Hızlı deneme profili: 1 epoch, daha kısa sekans ve daha küçük LoRA",
+        )
         p_train.add_argument("--dry-run", action="store_true", help="Eğitimi başlatmadan veri ve ayarları doğrula")
         p_train.add_argument("--no-build", action="store_true", help="Eğitim sonrası otomatik .cact derlemesini atla")
         p_train.add_argument("--push-to-hub", action="store_true", help="Eğitim sonrası modeli Hugging Face Hub'a yükle")

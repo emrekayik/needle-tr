@@ -74,6 +74,17 @@ Needle 3 base ağırlıklar (121M parametre, ~29 MB) üzerinde LoRA eğitimi:
 uv run needle-tr train --epochs 10
 ```
 
+Hızlı bir deneme için tüm eğitim ayarlarını tek seçenekle küçültebilirsiniz:
+
+```bash
+uv run needle-tr train --quick --no-build
+```
+
+`--quick`; epoch sayısını 1'e, maksimum sekans uzunluğunu 512'ye, LoRA rank'ini
+8'e ve derleme katmanı sayısını 2'ye indirir. Açıkça verdiğiniz değerler bu
+profilde önceliklidir. Gerçek model çıktısı gerektiğinde `--no-build` seçeneğini
+kaldırın.
+
 Tüm parametreler:
 
 | Parametre | Varsayılan | Açıklama |
