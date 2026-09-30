@@ -6,12 +6,13 @@
 </p>
 
 <p align="center">
-  <a href="#-english"><b>English</b></a> &nbsp;|&nbsp; <a href="#-türkçe"><b>Türkçe</b></a>
+  <a href="#-english"><b>English</b></a>  |  <a href="#-türkçe"><b>Türkçe</b></a>
 </p>
 
 ---
 
 <a name="-english"></a>
+
 ## 🌐 English
 
 ### Overview
@@ -37,16 +38,19 @@ The project builds upon and extends the lightweight on-device foundation model *
 ### 📦 Installation
 
 Standard lightweight installation (agent and CLI only, ~20 MB):
+
 ```bash
 pip install needle-tr
 ```
 
 For **fine-tuning** and **Hugging Face** training dependencies:
+
 ```bash
 pip install "needle-tr[train]"
 ```
 
 Or for development with [uv](https://github.com/astral-sh/uv):
+
 ```bash
 git clone https://github.com/emrekayik/needle-tr.git
 cd needle-tr
@@ -60,6 +64,7 @@ uv sync --extra train
 All operations are accessible through the `needle-tr` CLI:
 
 #### 1. Synthetic Data Generation
+
 ```bash
 # Using local seed data
 uv run needle-tr generate-data
@@ -69,6 +74,7 @@ uv run needle-tr generate-data --use-ollama --ollama-model qwen2.5:7b
 ```
 
 #### 2. Fine-Tuning & Hugging Face Upload
+
 ```bash
 # Dry-run validation (checks dataset and GPU settings without training)
 uv run needle-tr train --dry-run
@@ -85,6 +91,7 @@ uv run needle-tr push-hub username/needle-tr-dataset --dataset
 ```
 
 #### 3. Export to Ollama
+
 ```bash
 # Generate Modelfile
 uv run needle-tr export-ollama --base-model qwen2.5:7b --model-name needle-tr
@@ -95,6 +102,7 @@ ollama run needle-tr "25 * 4 hesapla"
 ```
 
 #### 4. Automated Benchmark
+
 ```bash
 # Evaluate on-device Cactus Needle agent
 uv run needle-tr benchmark --suite
@@ -104,6 +112,7 @@ uv run needle-tr benchmark --target ollama --ollama-model needle-tr
 ```
 
 #### 5. Release & Publishing
+
 ```bash
 # All-in-one release command: bumps version, tags git, cleans dist, builds & publishes to PyPI
 ./release.sh          # Patch bump (e.g., 0.1.5 -> 0.1.6)
@@ -132,6 +141,7 @@ print("Calculation:", calc_result["results"])
 ```
 
 Or run the pre-configured CLI agent:
+
 ```bash
 uv run needle-agent
 ```
@@ -149,18 +159,18 @@ Latest benchmark results measured with the built-in `needle-tr benchmark` tool:
 | :--- | :--- | :--- |
 | **Target Tested** | `Cactus Needle (On-Device Agent)` | Tested environment (Agent / Model) |
 | **Total Test Samples** | **210** | Number of Turkish test queries |
-| **Tool Selection Accuracy** | **%81.4** (171/210) | Correct tool selected rate |
+| **Tool Selection Accuracy** | **%80.0** (168/210) | Correct tool selected rate |
 | **Argument Match Accuracy** | **%62.4** (131/210) | Exact/semantic parameter match rate |
 | **Valid Format Rate** | **%100.0** (210/210) | Cleanly parsed structured output rate |
-| **Average Latency** | **224.2 ms** | Min: 84.5 ms, Max: 1177.1 ms |
-| **Last Updated** | `2026-09-28 21:11:53` | Benchmark execution timestamp |
+| **Average Latency** | **232.1 ms** | Min: 80.2 ms, Max: 1254.0 ms |
+| **Last Updated** | `2026-10-01 02:31:07` | Benchmark execution timestamp |
 
 | Tool | Tool Accuracy | Argument Match | Samples | Average Latency |
 | :--- | :---: | :---: | :---: | :---: |
-| `calculate` | %98.2 | %63.6 | 55 | 194.7 ms |
-| `get_weather` | %81.8 | %69.1 | 55 | 228.2 ms |
-| `send_message` | %46.0 | %30.0 | 50 | 287.1 ms |
-| `set_alarm` | %98.0 | %86.0 | 50 | 189.3 ms |
+| `calculate` | %92.7 | %63.6 | 55 | 203.8 ms |
+| `get_weather` | %85.5 | %72.7 | 55 | 240.8 ms |
+| `send_message` | %40.0 | %26.0 | 50 | 299.4 ms |
+| `set_alarm` | %100.0 | %86.0 | 50 | 186.4 ms |
 <!-- BENCHMARK_END -->
 
 ---
@@ -178,9 +188,11 @@ For step-by-step training architecture and dataset formatting, see [FINETUNE_GUI
 <br>
 
 ---
+
 ---
 
 <a name="-türkçe"></a>
+
 ## 🇹🇷 Türkçe
 
 ### Genel Bakış
@@ -206,16 +218,19 @@ Proje, [Cactus Compute](https://github.com/cactus-compute/needle) tarafından ge
 ### 📦 Kurulum
 
 Standart hafif kurulum (yalnızca yerel ajan ve CLI, ~20 MB):
+
 ```bash
 pip install needle-tr
 ```
 
 **Fine-tuning** (ince ayar) ve **Hugging Face** eğitim kütüphaneleriyle birlikte kurulum:
+
 ```bash
 pip install "needle-tr[train]"
 ```
 
 Geliştirici ortamı için [uv](https://github.com/astral-sh/uv) ile senkronize edin:
+
 ```bash
 git clone https://github.com/emrekayik/needle-tr.git
 cd needle-tr
@@ -229,6 +244,7 @@ uv sync --extra train
 Tüm işlemler `needle-tr` komut arayüzü ile yönetilebilir:
 
 #### 1. Sentetik Veri Üretimi (`Dataset Generation`)
+
 ```bash
 # Yerel tohum verileri kullanarak temel veri seti üret
 uv run needle-tr generate-data
@@ -238,6 +254,7 @@ uv run needle-tr generate-data --use-ollama --ollama-model qwen2.5:7b
 ```
 
 #### 2. İnce Ayar Eğitimi & Hugging Face Dağıtımı (`Fine-Tuning & Hub Push`)
+
 ```bash
 # Dry-run (eğitimi başlatmadan veri setini ve GPU ayarlarını ön doğrulama)
 uv run needle-tr train --dry-run
@@ -254,6 +271,7 @@ uv run needle-tr push-hub kullanici_adi/needle-tr-dataset --dataset
 ```
 
 #### 3. Ollama Ortamına Aktarım (`Ollama Export`)
+
 ```bash
 # Modelfile dosyasını oluştur
 uv run needle-tr export-ollama --base-model qwen2.5:7b --model-name needle-tr
@@ -264,6 +282,7 @@ ollama run needle-tr "25 * 4 hesapla"
 ```
 
 #### 4. Başarım ve Hız Testi (`Benchmark`)
+
 ```bash
 # Cihaz üstü (on-device) Cactus Needle ajanını test et ve grafiği güncelle
 uv run needle-tr benchmark --suite
@@ -273,6 +292,7 @@ uv run needle-tr benchmark --target ollama --ollama-model needle-tr
 ```
 
 #### 5. Sürüm Yayınlama (`Release & Publish`)
+
 ```bash
 # Tek komutla sürüm artırma, git etiketleme, paket derleme ve PyPI yayını:
 ./release.sh          # Patch artırma (örn: 0.1.5 -> 0.1.6)
@@ -301,6 +321,7 @@ print("Hesaplama Sonucu:", hesap["results"])
 ```
 
 Hazır terminal ajanıyla denemek için:
+
 ```bash
 uv run needle-agent
 ```
@@ -318,18 +339,18 @@ uv run needle-agent
 | :--- | :--- | :--- |
 | **Test Edilen Hedef** | `Cactus Needle (On-Device Agent)` | Test edilen ortam / ajan modeli |
 | **Toplam Test Sorgusu** | **210** | Değerlendirilen Türkçe komut sayısı |
-| **Araç Seçim Doğruluğu** | **%81.4** (171/210) | Doğru fonksiyonu seçme başarısı |
+| **Araç Seçim Doğruluğu** | **%80.0** (168/210) | Doğru fonksiyonu seçme başarısı |
 | **Argüman Doğruluğu** | **%62.4** (131/210) | Parametreleri eksiksiz ayrıştırma oranı |
 | **Geçerli Yanıt Oranı** | **%100.0** (210/210) | Hatasız parse edilen yapısal çıktı oranı |
-| **Ortalama Gecikme (Latency)** | **224.2 ms** | İstek başına ortalama yanıt süresi |
-| **Son Güncelleme** | `2026-09-28 21:11:53` | Testin çalıştırıldığı zaman |
+| **Ortalama Gecikme (Latency)** | **232.1 ms** | İstek başına ortalama yanıt süresi |
+| **Son Güncelleme** | `2026-10-01 02:31:07` | Testin çalıştırıldığı zaman |
 
 | Araç (`Tool`) | Araç Doğruluğu | Argüman Eşleşmesi | Test Sayısı | Ortalama Gecikme |
 | :--- | :---: | :---: | :---: | :---: |
-| `calculate` | %98.2 | %63.6 | 55 | 194.7 ms |
-| `get_weather` | %81.8 | %69.1 | 55 | 228.2 ms |
-| `send_message` | %46.0 | %30.0 | 50 | 287.1 ms |
-| `set_alarm` | %98.0 | %86.0 | 50 | 189.3 ms |
+| `calculate` | %92.7 | %63.6 | 55 | 203.8 ms |
+| `get_weather` | %85.5 | %72.7 | 55 | 240.8 ms |
+| `send_message` | %40.0 | %26.0 | 50 | 299.4 ms |
+| `set_alarm` | %100.0 | %86.0 | 50 | 186.4 ms |
 <!-- BENCHMARK_TR_END -->
 
 ---
