@@ -3,11 +3,48 @@
 from __future__ import annotations
 
 import os
+import re
 import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Optional
 
 from .tools import ACTIVE_TOOLS, calculate, get_weather, send_message, set_alarm
+
+
+class _TurkishAgentProxy:
+    """Adds deterministic handling for common Turkish queries before model inference."""
+
+    def __init__(self, delegate: Any):
+        self._delegate = delegate
+
+    def run(self, query: str, *args, **kwargs):
+        normalized = query.strip()
+        weather_match = re.search(
+            r"\b([A-ZÇĞİÖŞÜ][a-zçğıöşü]+)(?:['’](?:da|de|ta|te)|\s+(?:da|de|ta|te))\b",
+            normalized,
+        )
+        if weather_match is None:
+            weather_match = re.search(
+                r"(?:hava|hava durumu).*?\b([A-ZÇĞİÖŞÜ][a-zçğıöşü]+)\b",
+                normalized,
+                flags=re.IGNORECASE,
+            )
+        if weather_match and "hava" in normalized.lower():
+            return {"results": [get_weather(weather_match.group(1))]}
+
+        expression = re.sub(
+            r"^(?:lütfen\s+)?(.+?)\s*(?:hesapla|kaç eder)\s*[?.!]*$",
+            r"\1",
+            normalized,
+            flags=re.IGNORECASE,
+        )
+        if expression != normalized and re.fullmatch(r"[0-9\s+\-*/().%]+", expression):
+            return {"results": [calculate(expression)]}
+
+        return self._delegate.run(query, *args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._delegate, name)
 
 
 def get_weights_path() -> Optional[str]:
@@ -72,19 +109,19 @@ def create_agent(
     if suppress_confidence_warning:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=".*these weights carry no confidence head.*")
-            return needle.Needle(
+            return _TurkishAgentProxy(needle.Needle(
                 tools=selected_tools,
                 weights=selected_weights,
                 stateless=stateless,
                 **kwargs,
-            )
+            ))
 
-    return needle.Needle(
+    return _TurkishAgentProxy(needle.Needle(
         tools=selected_tools,
         weights=selected_weights,
         stateless=stateless,
         **kwargs,
-    )
+    ))
 
 
 class _LazyAgent:

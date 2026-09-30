@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import re
 from typing import Any, Callable, Dict, List, Optional
 
 
@@ -23,6 +24,7 @@ def set_alarm(time: str, label: str = "Alarm") -> Dict[str, Any]:
 
 def calculate(expression: str) -> Dict[str, Any]:
     """Calculate a mathematical expression."""
+    expression = re.sub(r"\s*(?:hesapla|hesaplayabilir misin|kaç eder)\s*[?.!]*$", "", expression.strip(), flags=re.IGNORECASE)
     try:
         result = eval(expression, {"__builtins__": None}, {})
     except Exception:
